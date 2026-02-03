@@ -1,0 +1,161 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* La Casa de Mi Padre - Bakery Design System
+   Warm, artisanal aesthetic with professional touch */
+
+@layer base {
+  :root {
+    /* Warm cream background */
+    --background: 39 33% 97%;
+    --foreground: 25 30% 15%;
+
+    /* Card with subtle warmth */
+    --card: 39 40% 99%;
+    --card-foreground: 25 30% 15%;
+
+    --popover: 39 40% 99%;
+    --popover-foreground: 25 30% 15%;
+
+    /* Rich chocolate brown primary */
+    --primary: 25 45% 25%;
+    --primary-foreground: 39 33% 97%;
+
+    /* Soft flour/cream secondary */
+    --secondary: 35 30% 92%;
+    --secondary-foreground: 25 30% 20%;
+
+    /* Muted warm tones */
+    --muted: 35 20% 93%;
+    --muted-foreground: 25 15% 45%;
+
+    /* Golden honey accent */
+    --accent: 38 90% 55%;
+    --accent-foreground: 25 45% 15%;
+
+    /* Warm rose for destructive */
+    --destructive: 0 65% 50%;
+    --destructive-foreground: 39 33% 97%;
+
+    /* Borders with warmth */
+    --border: 35 25% 88%;
+    --input: 35 25% 88%;
+    --ring: 25 45% 35%;
+
+    --radius: 0.75rem;
+
+    /* Sidebar - warm wood tones */
+    --sidebar-background: 25 35% 18%;
+    --sidebar-foreground: 39 30% 92%;
+    --sidebar-primary: 38 90% 55%;
+    --sidebar-primary-foreground: 25 45% 15%;
+    --sidebar-accent: 25 30% 25%;
+    --sidebar-accent-foreground: 39 30% 92%;
+    --sidebar-border: 25 25% 25%;
+    --sidebar-ring: 38 90% 55%;
+
+    /* Custom bakery tokens */
+    --success: 142 55% 40%;
+    --success-foreground: 39 33% 97%;
+    --warning: 38 92% 50%;
+    --warning-foreground: 25 45% 15%;
+    --info: 210 60% 50%;
+    --info-foreground: 39 33% 97%;
+
+    /* Status colors for orders */
+    --status-pending: 38 92% 50%;
+    --status-baking: 25 70% 45%;
+    --status-assembling: 280 60% 50%;
+    --status-decorating: 330 70% 55%;
+    --status-ready: 142 55% 40%;
+    --status-delivered: 210 60% 50%;
+  }
+
+  .dark {
+    --background: 25 30% 8%;
+    --foreground: 39 30% 92%;
+
+    --card: 25 28% 12%;
+    --card-foreground: 39 30% 92%;
+
+    --popover: 25 28% 12%;
+    --popover-foreground: 39 30% 92%;
+
+    --primary: 38 85% 55%;
+    --primary-foreground: 25 45% 10%;
+
+    --secondary: 25 25% 18%;
+    --secondary-foreground: 39 30% 90%;
+
+    --muted: 25 20% 18%;
+    --muted-foreground: 35 15% 60%;
+
+    --accent: 38 90% 55%;
+    --accent-foreground: 25 45% 10%;
+
+    --destructive: 0 60% 45%;
+    --destructive-foreground: 39 33% 97%;
+
+    --border: 25 20% 20%;
+    --input: 25 20% 20%;
+    --ring: 38 85% 55%;
+
+    --sidebar-background: 25 35% 10%;
+    --sidebar-foreground: 39 30% 92%;
+    --sidebar-primary: 38 90% 55%;
+    --sidebar-primary-foreground: 25 45% 10%;
+    --sidebar-accent: 25 30% 18%;
+    --sidebar-accent-foreground: 39 30% 92%;
+    --sidebar-border: 25 25% 18%;
+    --sidebar-ring: 38 90% 55%;
+
+    --success: 142 50% 45%;
+    --success-foreground: 25 30% 8%;
+    --warning: 38 92% 50%;
+    --warning-foreground: 25 45% 10%;
+    --info: 210 60% 55%;
+    --info-foreground: 25 30% 8%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    font-family: 'Inter', system-ui, sans-serif;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Playfair Display', Georgia, serif;
+  }
+}
+
+/* Custom scrollbar */
+@layer utilities {
+  .scrollbar-thin {
+    scrollbar-width: thin;
+    scrollbar-color: hsl(var(--border)) transparent;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar-thumb {
+    background-color: hsl(var(--border));
+    border-radius: 3px;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar-thumb:hover {
+    background-color: hsl(var(--muted-foreground));
+  }
+}
