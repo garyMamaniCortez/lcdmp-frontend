@@ -1,3 +1,43 @@
+// Dashboard Types
+export interface TodaysResume {
+    todaySales:           number;
+    orders:               Orders;
+    lowStock:             number;
+    yesterdayComparation: string;
+}
+
+export interface Orders {
+    pending:          number;
+    inProduction:     number;
+    readyForDelivery: number;
+    completedToday:   number;
+}
+
+export type ProductStatus =
+  | 'pending'
+  | 'baking'
+  | 'assembling'
+  | 'decorating'
+  | 'ready'
+  | 'delivered'
+
+export interface RecentOrders {
+    id:       string;
+    customer: string;
+    product:  string;
+    status:   ProductStatus;
+    time:     string;
+}
+
+// Sales Types
+
+export interface CartItem {
+  productId: string;
+  name: string;
+  quantity: number;
+  price: number;
+}
+
 // User & Authentication Types
 export type UserRole = 
   | 'admin' 

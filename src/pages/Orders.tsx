@@ -12,10 +12,10 @@ import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { MobileCard, MobileCardRow, MobileCardHeader, useIsMobile } from '@/components/ui/responsive-table';
 import { Plus, Search, Eye, Clock, CheckCircle, Truck, AlertCircle, ChefHat, Palette, Hammer } from 'lucide-react';
-import { mockOrders, mockFlavors, mockProducts } from '@/data/mockData';
+import { mockFlavors, mockProducts } from '@/data/mockData';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
-import { OrderStatus } from '@/types';
+import { Order, OrderStatus } from '@/types';
 import { toast } from 'sonner';
 
 const statusConfig: Record<OrderStatus, { label: string; color: string; icon: React.ElementType }> = {
@@ -28,21 +28,125 @@ const statusConfig: Record<OrderStatus, { label: string; color: string; icon: Re
   cancelled: { label: 'Cancelado', color: 'bg-red-100 text-red-800', icon: AlertCircle },
 };
 
+const orders: Order[] = [
+  {
+    id: '1',
+    customerName: 'María García',
+    customerPhone: '71234567',
+    pickupDate: new Date(Date.now() + 86400000),
+    pickupTime: '14:00',
+    status: 'baking',
+    items: [],
+    customCakes: [
+      { id: '1', portions: 30, shape: 'Redonda', cakeFlavor: 'Chocolate', fillingFlavors: ['Dulce de leche', 'Frutilla'], design: 'Unicornio rosa', dedication: 'Feliz cumple Sofía', referenceImages: [], price: 450, quantity: 1 }
+    ],
+    deliveryAddress: 'Av. América #123',
+    deliveryCost: 30,
+    deposit: 200,
+    depositMethod: 'qr',
+    total: 480,
+    createdAt: new Date(),
+    createdBy: '2'
+  },
+  {
+    id: '2',
+    customerName: 'Carlos López',
+    customerPhone: '76543210',
+    pickupDate: new Date(Date.now() + 172800000),
+    pickupTime: '10:00',
+    status: 'pending',
+    items: [
+      { productId: '4', product: mockProducts[3], quantity: 50, price: 750 }
+    ],
+    customCakes: [],
+    sweetTableCombo: {
+      products: [
+        { productId: '4', product: mockProducts[3], quantity: 50, pricePerUnit: 15 },
+        { productId: '6', product: mockProducts[5], quantity: 30, pricePerUnit: 8 },
+        { productId: '7', product: mockProducts[6], quantity: 20, pricePerUnit: 5 }
+      ],
+      totalQuantity: 100,
+      price: 1190
+    },
+    deliveryCost: 0,
+    deposit: 500,
+    depositMethod: 'cash',
+    total: 1190,
+    createdAt: new Date(),
+    createdBy: '2'
+  },
+  {
+    id: '3',
+    customerName: 'Ana Rodríguez',
+    customerPhone: '79876543',
+    pickupDate: new Date(Date.now() + 43200000),
+    pickupTime: '16:00',
+    status: 'decorating',
+    items: [],
+    customCakes: [
+      { id: '2', portions: 20, shape: 'Rectangular', cakeFlavor: 'Vainilla', fillingFlavors: ['Crema pastelera'], design: 'Flores vintage', referenceImages: [], price: 280, quantity: 1 }
+    ],
+    deliveryCost: 0,
+    deposit: 280,
+    depositMethod: 'qr',
+    total: 280,
+    guarantee: { amount: 50, items: 'Pedestal blanco y base dorada' },
+    createdAt: new Date(),
+    createdBy: '2'
+  },
+  {
+    id: '4',
+    customerName: 'Roberto Fernández',
+    customerPhone: '72233445',
+    pickupDate: new Date(Date.now() + 259200000),
+    pickupTime: '11:00',
+    status: 'assembling',
+    items: [],
+    customCakes: [
+      { id: '3', portions: 50, shape: 'Dos pisos', cakeFlavor: 'Red Velvet', fillingFlavors: ['Queso crema'], design: 'Boda elegante', dedication: 'R & M', referenceImages: [], price: 800, quantity: 1 }
+    ],
+    deliveryAddress: 'Zona Sur, calle 21',
+    deliveryCost: 50,
+    deposit: 400,
+    depositMethod: 'qr',
+    total: 850,
+    createdAt: new Date(),
+    createdBy: '2'
+  },
+  {
+    id: '5',
+    customerName: 'Lucía Mendoza',
+    customerPhone: '78765432',
+    pickupDate: new Date(Date.now() + 7200000),
+    pickupTime: '12:00',
+    status: 'ready',
+    items: [],
+    customCakes: [
+      { id: '4', portions: 15, cakeFlavor: 'Chocolate', fillingFlavors: ['Nutella'], price: 200, quantity: 1, referenceImages: [] }
+    ],
+    deliveryCost: 25,
+    deposit: 200,
+    total: 225,
+    createdAt: new Date(),
+    createdBy: '2'
+  },
+];
+
 export default function Orders() {
   const isMobile = useIsMobile();
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedStatus, setSelectedStatus] = useState<string>('all');
   const [isNewOrderOpen, setIsNewOrderOpen] = useState(false);
-  const [selectedOrder, setSelectedOrder] = useState<typeof mockOrders[0] | null>(null);
+  const [selectedOrder, setSelectedOrder] = useState<typeof orders[0] | null>(null);
 
-  const filteredOrders = mockOrders.filter(order => {
+  const filteredOrders = orders.filter(order => {
     const matchesSearch = order.customerName.toLowerCase().includes(searchTerm.toLowerCase()) ||
       order.customerPhone.includes(searchTerm);
     const matchesStatus = selectedStatus === 'all' || order.status === selectedStatus;
     return matchesSearch && matchesStatus;
   });
 
-  const getOrderPriority = (order: typeof mockOrders[0]) => {
+  const getOrderPriority = (order: typeof orders[0]) => {
     const hoursUntilPickup = (order.pickupDate.getTime() - Date.now()) / (1000 * 60 * 60);
     const totalPortions = order.customCakes.reduce((sum, cake) => sum + cake.portions, 0);
     return hoursUntilPickup - (totalPortions / 10);
@@ -77,7 +181,7 @@ export default function Orders() {
         {/* Stats Cards */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           {Object.entries(statusConfig).slice(0, 4).map(([status, config]) => {
-            const count = mockOrders.filter(o => o.status === status).length;
+            const count = orders.filter(o => o.status === status).length;
             const Icon = config.icon;
             return (
               <Card key={status} className="cursor-pointer hover:shadow-md" onClick={() => setSelectedStatus(status)}>
@@ -472,7 +576,7 @@ function NewOrderForm({ onClose }: { onClose: () => void }) {
   );
 }
 
-function OrderDetail({ order }: { order: typeof mockOrders[0] }) {
+function OrderDetail({ order }: { order: typeof orders[0] }) {
   return (
     <div className="space-y-4">
       <div className="grid grid-cols-2 gap-4">

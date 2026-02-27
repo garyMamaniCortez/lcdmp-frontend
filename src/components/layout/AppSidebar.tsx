@@ -39,7 +39,7 @@ const navItems: NavItem[] = [
   { icon: Package, label: 'Pedidos', href: '/orders', roles: ['seller', 'admin'] },
   { icon: Cake, label: 'Productos', href: '/products', roles: ['admin'] },
   { icon: Warehouse, label: 'Inventario', href: '/inventory', roles: ['admin', 'baker'] },
-  { icon: Calendar, label: 'Menús Especiales', href: '/menus', roles: ['admin', 'seller'] },
+  { icon: Calendar, label: 'Menús Especiales', href: '/special-menus', roles: ['admin', 'seller'] },
   { icon: ChefHat, label: 'Hornos', href: '/baking', roles: ['baker', 'admin'] },
   { icon: Hammer, label: 'Armado', href: '/assembly', roles: ['assembler', 'admin'] },
   { icon: Palette, label: 'Decoración', href: '/decoration', roles: ['designer', 'admin'] },

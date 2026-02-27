@@ -8,15 +8,8 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Plus, Search, ShoppingCart, QrCode, Banknote } from 'lucide-react';
-import { mockProducts } from '@/data/mockData';
 import { toast } from 'sonner';
-
-interface CartItem {
-  productId: string;
-  name: string;
-  quantity: number;
-  price: number;
-}
+import { CartItem, Product } from '@/types';
 
 export default function Sales() {
   const [searchTerm, setSearchTerm] = useState('');
@@ -24,12 +17,23 @@ export default function Sales() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState<'cash' | 'qr'>('cash');
 
-  const availableProducts = mockProducts.filter(p => 
+  const products: Product[] = [
+    { id: '1', name: 'Torta de Chocolate', description: 'Torta clásica de chocolate con ganache', basePrice: 180, category: 'cake', portionSizes: [10, 15, 20, 30], pricePerPortion: 12, isActive: true, location: 'store', stock: 3, minStock: 1 },
+    { id: '2', name: 'Torta de Vainilla', description: 'Torta de vainilla con buttercream', basePrice: 160, category: 'cake', portionSizes: [10, 15, 20, 30], pricePerPortion: 11, isActive: true, location: 'store', stock: 2, minStock: 1 },
+    { id: '3', name: 'Torta Red Velvet', description: 'Torta red velvet con frosting de queso crema', basePrice: 200, category: 'cake', portionSizes: [10, 15, 20, 30], pricePerPortion: 14, isActive: true, location: 'production', stock: 1, minStock: 1 },
+    { id: '4', name: 'Cupcake Decorado', description: 'Cupcake con diseño personalizado', basePrice: 15, category: 'cupcake', portionSizes: [1], pricePerPortion: 15, isActive: true, location: 'store', stock: 24, minStock: 12 },
+    { id: '5', name: 'Cheesecake', description: 'Cheesecake New York style', basePrice: 150, category: 'dessert', portionSizes: [8, 12], pricePerPortion: 15, isActive: true, location: 'store', stock: 2, minStock: 1 },
+    { id: '6', name: 'Brownie', description: 'Brownie con nueces', basePrice: 8, category: 'dessert', portionSizes: [1], pricePerPortion: 8, isActive: true, location: 'store', stock: 20, minStock: 10 },
+    { id: '7', name: 'Alfajores', description: 'Alfajores de maicena con dulce de leche', basePrice: 5, category: 'dessert', portionSizes: [1], pricePerPortion: 5, isActive: true, location: 'store', stock: 30, minStock: 15 },
+    { id: '8', name: 'Torta Selva Negra', description: 'Torta de chocolate con cerezas y crema', basePrice: 220, category: 'cake', portionSizes: [15, 20, 30], pricePerPortion: 15, isActive: true, location: 'production', stock: 0, minStock: 1 },
+  ];
+
+  const availableProducts = products.filter(p => 
     p.isActive && p.location === 'store' && p.stock > 0 &&
     p.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const addToCart = (product: typeof mockProducts[0]) => {
+  const addToCart = (product: typeof products[0]) => {
     const existing = cart.find(item => item.productId === product.id);
     if (existing) {
       if (existing.quantity < product.stock) {

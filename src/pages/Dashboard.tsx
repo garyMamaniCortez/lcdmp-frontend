@@ -13,18 +13,21 @@ import {
   Truck,
   CalendarHeart
 } from 'lucide-react';
+import { RecentOrders, TodaysResume } from '@/types';
 
-// Mock stats for demo
-const stats = {
+const stats: TodaysResume = {
   todaySales: 2450,
-  pendingOrders: 8,
-  inProduction: 5,
-  readyForDelivery: 3,
-  lowStockItems: 4,
-  completedToday: 12,
-};
+  orders: {
+    pending: 8,
+    inProduction: 5,
+    readyForDelivery: 3,
+    completedToday: 12
+  },
+  lowStock: 4,
+  yesterdayComparation: "+12%",
+}
 
-const recentOrders = [
+const recentOrders: RecentOrders[] = [
   { id: 'ORD-001', customer: 'María García', product: 'Torta de Chocolate', status: 'decorating', time: '14:00' },
   { id: 'ORD-002', customer: 'Juan Pérez', product: 'Mesa Dulce x50', status: 'baking', time: '15:30' },
   { id: 'ORD-003', customer: 'Ana López', product: 'Torta Personalizada', status: 'assembling', time: '16:00' },
@@ -79,7 +82,7 @@ export default function Dashboard() {
               <CardContent>
                 <div className="text-2xl font-bold">Bs. {stats.todaySales.toLocaleString()}</div>
                 <p className="text-xs text-muted-foreground mt-1">
-                  +12% vs. ayer
+                  {stats.yesterdayComparation} vs. ayer
                 </p>
               </CardContent>
             </Card>
@@ -93,7 +96,7 @@ export default function Dashboard() {
               <Clock className="h-4 w-4 text-warning" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{stats.pendingOrders}</div>
+              <div className="text-2xl font-bold">{stats.orders.pending}</div>
               <p className="text-xs text-muted-foreground mt-1">
                 Para hoy y mañana
               </p>
@@ -108,7 +111,7 @@ export default function Dashboard() {
               <Cake className="h-4 w-4 text-primary" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{stats.inProduction}</div>
+              <div className="text-2xl font-bold">{stats.orders.inProduction}</div>
               <p className="text-xs text-muted-foreground mt-1">
                 Horneando, armando o decorando
               </p>
@@ -124,7 +127,7 @@ export default function Dashboard() {
                 <Truck className="h-4 w-4 text-info" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">{stats.readyForDelivery}</div>
+                <div className="text-2xl font-bold">{stats.orders.readyForDelivery}</div>
                 <p className="text-xs text-muted-foreground mt-1">
                   Esperando delivery
                 </p>
@@ -141,7 +144,7 @@ export default function Dashboard() {
                 <AlertTriangle className="h-4 w-4 text-destructive" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">{stats.lowStockItems}</div>
+                <div className="text-2xl font-bold">{stats.lowStock}</div>
                 <p className="text-xs text-muted-foreground mt-1">
                   Productos por debajo del mínimo
                 </p>
@@ -157,7 +160,7 @@ export default function Dashboard() {
               <CheckCircle className="h-4 w-4 text-success" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{stats.completedToday}</div>
+              <div className="text-2xl font-bold">{stats.orders.completedToday}</div>
               <p className="text-xs text-muted-foreground mt-1">
                 Pedidos entregados
               </p>
