@@ -154,6 +154,24 @@ export const mockOrders: Order[] = [
     createdAt: new Date(),
     createdBy: '2'
   },
+  {
+    id: '6',
+    customerName: 'Rodrigo Sanchez',
+    customerPhone: '7384132',
+    pickupDate: new Date(Date.now() + 7200000),
+    pickupTime: '13:00',
+    status: 'ready',
+    items: [],
+    customCakes: [
+      { id: '4', portions: 15, cakeFlavor: 'Chocolate', fillingFlavors: ['Nutella'], price: 200, quantity: 1, referenceImages: [] }
+    ],
+    deliveryAddress: 'Av. América #123',
+    deliveryCost: 25,
+    deposit: 200,
+    total: 225,
+    createdAt: new Date(),
+    createdBy: '2'
+  },
 ];
 
 // Special Menus
