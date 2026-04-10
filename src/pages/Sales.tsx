@@ -1,38 +1,55 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { MainLayout } from '@/components/layout/MainLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Plus, Search, ShoppingCart, QrCode, Banknote, X, Minus, Plus as PlusIcon } from 'lucide-react';
+import { Search, ShoppingCart, QrCode, Banknote, X, Minus, Plus as PlusIcon } from 'lucide-react';
 import { toast } from 'sonner';
 import { CartItem, Product } from '@/types';
+import { ISalesApi, defaultSalesApi, SaleData } from '@/api/SalesApi';
 
-export default function Sales() {
+interface SalesProps {
+  api?: ISalesApi;
+}
+
+export default function Sales({ api = defaultSalesApi }: SalesProps) {
   const [searchTerm, setSearchTerm] = useState('');
+  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState('');
   const [cart, setCart] = useState<CartItem[]>([]);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState<'cash' | 'qr'>('cash');
   const [isCartOpen, setIsCartOpen] = useState(false);
+  const [products, setProducts] = useState<Product[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  const products: Product[] = [
-    { id: '1', name: 'Torta de Chocolate', description: 'Torta clásica de chocolate con ganache', basePrice: 180, category: 'cake', portionSizes: [10, 15, 20, 30], pricePerPortion: 12, isActive: true, location: 'store', stock: 3, minStock: 1 },
-    { id: '2', name: 'Torta de Vainilla', description: 'Torta de vainilla con buttercream', basePrice: 160, category: 'cake', portionSizes: [10, 15, 20, 30], pricePerPortion: 11, isActive: true, location: 'store', stock: 2, minStock: 1 },
-    { id: '3', name: 'Torta Red Velvet', description: 'Torta red velvet con frosting de queso crema', basePrice: 200, category: 'cake', portionSizes: [10, 15, 20, 30], pricePerPortion: 14, isActive: true, location: 'production', stock: 1, minStock: 1 },
-    { id: '4', name: 'Cupcake Decorado', description: 'Cupcake con diseño personalizado', basePrice: 15, category: 'cupcake', portionSizes: [1], pricePerPortion: 15, isActive: true, location: 'store', stock: 24, minStock: 12 },
-    { id: '5', name: 'Cheesecake', description: 'Cheesecake New York style', basePrice: 150, category: 'dessert', portionSizes: [8, 12], pricePerPortion: 15, isActive: true, location: 'store', stock: 2, minStock: 1 },
-    { id: '6', name: 'Brownie', description: 'Brownie con nueces', basePrice: 8, category: 'dessert', portionSizes: [1], pricePerPortion: 8, isActive: true, location: 'store', stock: 20, minStock: 10 },
-    { id: '7', name: 'Alfajores', description: 'Alfajores de maicena con dulce de leche', basePrice: 5, category: 'dessert', portionSizes: [1], pricePerPortion: 5, isActive: true, location: 'store', stock: 30, minStock: 15 },
-    { id: '8', name: 'Torta Selva Negra', description: 'Torta de chocolate con cerezas y crema', basePrice: 220, category: 'cake', portionSizes: [15, 20, 30], pricePerPortion: 15, isActive: true, location: 'production', stock: 0, minStock: 1 },
-  ];
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearchTerm(searchTerm);
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [searchTerm]);
 
-  const availableProducts = products.filter(p => 
-    p.isActive && p.location === 'store' && p.stock > 0 &&
-    p.name.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  useEffect(() => {
+    const loadProducts = async () => {
+      try {
+        setLoading(true);
+        const fetchedProducts = await api.getProducts(debouncedSearchTerm);
+        setProducts(fetchedProducts);
+      } catch (error) {
+        toast.error('Error al cargar productos');
+        console.error(error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    loadProducts();
+  }, [api, debouncedSearchTerm]);
 
-  const addToCart = (product: typeof products[0]) => {
+  const availableProducts = products;
+
+  const addToCart = (product: Product) => {
     const existing = cart.find(item => item.productId === product.id);
     if (existing) {
       if (existing.quantity < product.stock) {
@@ -76,11 +93,31 @@ export default function Sales() {
 
   const total = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
 
-  const completeSale = () => {
-    toast.success(`Venta completada por Bs. ${total} (${paymentMethod === 'cash' ? 'Efectivo' : 'QR'})`);
-    setCart([]);
-    setIsDialogOpen(false);
-    setIsCartOpen(false);
+  const completeSale = async () => {
+    const saleData: SaleData = {
+      items: cart.map(item => ({
+        productId: item.productId,
+        quantity: item.quantity,
+        price: item.price,
+      })),
+      total,
+      paymentMethod,
+      timestamp: new Date(),
+    };
+
+    try {
+      await api.createSale(saleData);
+      toast.success(`Venta completada por Bs. ${total} (${paymentMethod === 'cash' ? 'Efectivo' : 'QR'})`);
+      setCart([]);
+      setIsDialogOpen(false);
+      setIsCartOpen(false);
+      // Recargar productos para reflejar stock actualizado (con el mismo término de búsqueda)
+      const updatedProducts = await api.getProducts(debouncedSearchTerm);
+      setProducts(updatedProducts);
+    } catch (error) {
+      toast.error('Error al procesar la venta');
+      console.error(error);
+    }
   };
 
   return (
@@ -131,30 +168,35 @@ export default function Sales() {
                 />
               </div>
             </div>
-
+            {loading ? (
+              <div className="flex items-center justify-center h-64">
+                <p className="text-muted-foreground">Cargando productos...</p>
+              </div>
+            ):(
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 sm:gap-4 px-4 sm:px-0">
+                {availableProducts.map(product => (
+                  <Card 
+                    key={product.id} 
+                    className="cursor-pointer hover:shadow-md transition-shadow active:scale-95 sm:active:scale-100"
+                    onClick={() => addToCart(product)}
+                  >
+                    <CardContent className="p-3 sm:p-4">
+                      <div className="aspect-square bg-muted rounded-lg mb-2 sm:mb-3 flex items-center justify-center">
+                        <ShoppingCart className="h-6 w-6 sm:h-8 sm:w-8 text-muted-foreground" />
+                      </div>
+                      <h3 className="font-medium text-xs sm:text-sm truncate">{product.name}</h3>
+                      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1 sm:gap-2 mt-1 sm:mt-2">
+                        <span className="font-bold text-primary text-sm sm:text-base">Bs. {product.basePrice}</span>
+                        <Badge variant="secondary" className="text-xs w-fit">
+                          {product.stock} u.
+                        </Badge>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            )}
             {/* Products Grid - Mobile: 2 columnas, Tablet: 3 columnas, Desktop: 3 columnas */}
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 sm:gap-4 px-4 sm:px-0">
-              {availableProducts.map(product => (
-                <Card 
-                  key={product.id} 
-                  className="cursor-pointer hover:shadow-md transition-shadow active:scale-95 sm:active:scale-100"
-                  onClick={() => addToCart(product)}
-                >
-                  <CardContent className="p-3 sm:p-4">
-                    <div className="aspect-square bg-muted rounded-lg mb-2 sm:mb-3 flex items-center justify-center">
-                      <ShoppingCart className="h-6 w-6 sm:h-8 sm:w-8 text-muted-foreground" />
-                    </div>
-                    <h3 className="font-medium text-xs sm:text-sm truncate">{product.name}</h3>
-                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1 sm:gap-2 mt-1 sm:mt-2">
-                      <span className="font-bold text-primary text-sm sm:text-base">Bs. {product.basePrice}</span>
-                      <Badge variant="secondary" className="text-xs w-fit">
-                        {product.stock} u.
-                      </Badge>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
 
             {availableProducts.length === 0 && (
               <div className="text-center py-12 px-4">

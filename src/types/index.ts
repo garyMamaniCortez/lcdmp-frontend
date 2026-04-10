@@ -85,7 +85,7 @@ export interface Product {
   basePrice: number;
   category: 'cake' | 'cupcake' | 'dessert' | 'bread' | 'special';
   image?: string;
-  portionSizes: number[];
+  portionSize: number;
   pricePerPortion: number;
   isActive: boolean;
   location: 'production' | 'store';
