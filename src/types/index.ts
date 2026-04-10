@@ -49,11 +49,9 @@ export type UserRole =
 
 export interface User {
   id: string;
-  email: string;
+  username: string;
   name: string;
-  roles: UserRole[];
-  avatar?: string;
-  createdAt: Date;
+  roles: UserRole[]
 }
 
 // Inventory Types
