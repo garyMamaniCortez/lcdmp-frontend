@@ -1,5 +1,6 @@
 // src/services/SalesApi.ts
 import { Product } from '@/types';
+import api from '@/api/api';
 
 export interface SaleItem {
   productId: string;
@@ -51,5 +52,44 @@ export class MockSalesApi implements ISalesApi {
   }
 }
 
+export class SalesApi implements ISalesApi {
+  async getProducts(searchTerm: string = ''): Promise<Product[]> {
+    try {
+      const response = await api.get('/sales/products', {
+        params: { search: searchTerm || undefined }
+      });
+
+      if (!response.data.success) {
+        throw new Error(response.data.message || 'Error al obtener productos');
+      }
+
+      return response.data.data as Product[];
+    } catch (error: any) {
+      console.error('Error en getProducts:', error);
+      throw new Error(error.response?.data?.message || error.message || 'Error de conexión');
+    }
+  }
+
+  async createSale(sale: SaleData): Promise<void> {
+    try {
+      const payload = {
+        items: sale.items,
+        total: sale.total,
+        paymentMethod: sale.paymentMethod
+      };
+
+      const response = await api.post('/sales', payload);
+
+      if (!response.data.success && response.status !== 201) {
+        throw new Error(response.data.message || 'Error al crear la venta');
+      }
+    } catch (error: any) {
+      console.error('Error en createSale:', error);
+      const message = error.response?.data?.message || error.message || 'Error al procesar la venta';
+      throw new Error(message);
+    }
+  }
+}
+
 // Singleton opcional para la instancia por defecto
-export const defaultSalesApi = new MockSalesApi();
+export const defaultSalesApi = new SalesApi();
