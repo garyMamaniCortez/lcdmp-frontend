@@ -194,7 +194,6 @@ export default function Orders() {
                 return (
                   <MobileCard 
                     key={order.id} 
-                    onClick={() => setSelectedOrder(order)}
                     className="active:scale-[0.98] transition-transform"
                   >
                     <MobileCardHeader className="px-3 py-2">
@@ -205,8 +204,29 @@ export default function Orders() {
                           {config.label}
                         </Badge>
                       </div>
-                      <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0">
+                      <Button 
+                        variant="ghost" 
+                        size="icon" 
+                        className="h-8 w-8 shrink-0"
+                        onClick={() => setSelectedOrder(order)}
+                      >
                         <Eye className="h-4 w-4" />
+                      </Button>
+                      <Button 
+                        variant="outline" 
+                        size="icon" 
+                        className="h-8 w-8 shrink-0"
+                        onClick={() => handleEditOrder(order)}
+                      >
+                        <Edit className="h-4 w-4" />
+                      </Button>
+                      <Button 
+                        variant="destructive" 
+                        size="icon" 
+                        className="h-8 w-8 shrink-0"
+                        onClick={() => handleDeleteOrder(order.id)}
+                      >
+                        <Trash2 className="h-4 w-4" />
                       </Button>
                     </MobileCardHeader>
                     
