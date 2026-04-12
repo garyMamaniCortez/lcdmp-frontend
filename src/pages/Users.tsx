@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { MainLayout } from '@/components/layout/MainLayout';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -15,21 +15,25 @@ import {
   Search, 
   Edit2, 
   Trash2, 
-  Users as UsersIcon, 
   Shield,
   Power,
   PowerOff,
   UserCheck,
-  UserX
+  Loader2
 } from 'lucide-react';
 import { CreateUser, User, UserRole } from '@/types';
-import { mockUsers } from '@/data/mockData';
 import { toast } from 'sonner';
 import { roleColors, roleLabels } from '@/types/consts';
+import { IUsersApi, defaultUsersApi } from '@/api/UsersApi';
 
-export default function Users() {
+interface UsersProps {
+  api?: IUsersApi;
+}
+
+export default function Users({ api = defaultUsersApi }: UsersProps) {
   const isMobile = useIsMobile();
-  const [users, setUsers] = useState<User[]>(mockUsers.map(user => ({ ...user, isActive: true })));
+  const [users, setUsers] = useState<User[]>([]);
+  const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
@@ -38,16 +42,32 @@ export default function Users() {
   const [editingUser, setEditingUser] = useState<User | null>(null);
   const [deletingUser, setDeletingUser] = useState<User | null>(null);
   const [togglingUser, setTogglingUser] = useState<User | null>(null);
+  const [submitting, setSubmitting] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
     username: '',
     password: ''
   });
 
-  const filteredUsers = users.filter(user =>
-    user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    user.username.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  // Cargar usuarios
+  useEffect(() => {
+    loadUsers();
+  }, [searchTerm]);
+
+  const loadUsers = async () => {
+    try {
+      setLoading(true);
+      const data = await api.getUsers(searchTerm);
+      setUsers(data);
+    } catch (error) {
+      toast.error('Error al cargar usuarios');
+      console.error(error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const filteredUsers = users;
 
   const getInitials = (name: string) => {
     return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
@@ -77,7 +97,7 @@ export default function Users() {
     setFormData({
       name: user.name,
       username: user.username,
-      password: '' // No mostramos la contraseña actual
+      password: ''
     });
     setSelectedRoles(user.roles);
     setIsDialogOpen(true);
@@ -93,68 +113,82 @@ export default function Users() {
     setIsToggleStatusDialogOpen(true);
   };
 
-  const handleToggleStatus = () => {
-    if (togglingUser) {
+  const handleToggleStatus = async () => {
+    if (!togglingUser) return;
+    
+    try {
+      setSubmitting(true);
+      await api.toggleUserStatus(togglingUser.id);
+      
       const newStatus = !togglingUser.isActive;
-      setUsers(prevUsers => 
-        prevUsers.map(u => 
-          u.id === togglingUser.id 
-            ? { ...u, isActive: newStatus }
-            : u
-        )
-      );
       toast.success(`Usuario ${newStatus ? 'activado' : 'desactivado'} exitosamente`);
+      
       setIsToggleStatusDialogOpen(false);
       setTogglingUser(null);
+      await loadUsers(); // Recargar datos
+    } catch (error) {
+      toast.error('Error al cambiar estado del usuario');
+      console.error(error);
+    } finally {
+      setSubmitting(false);
     }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (editingUser) {
-      setUsers(prevUsers => 
-        prevUsers.map(u => 
-          u.id === editingUser.id 
-            ? {
-                ...u,
-                name: formData.name,
-                username: formData.username,
-                roles: selectedRoles,
-                ...(formData.password && { password: formData.password })
-              }
-            : u
-        )
-      );
-      toast.success('Usuario actualizado exitosamente');
-    } else {
-      const newUser: CreateUser = {
-        name: formData.name,
-        username: formData.username,
-        password: formData.password,
-        roles: selectedRoles
-      };
-      const user: User = {
-        id: Date.now().toString(),
-        name: newUser.name,
-        username: newUser.username,
-        roles: newUser.roles,
-        isActive: true // Por defecto, el usuario se crea activo
+    try {
+      setSubmitting(true);
+      
+      if (editingUser) {
+        const updateData: Partial<CreateUser> = {
+          name: formData.name,
+          username: formData.username,
+          roles: selectedRoles,
+          ...(formData.password && { password: formData.password })
+        };
+        
+        await api.editUser(editingUser.id, updateData);
+        toast.success('Usuario actualizado exitosamente');
+      } else {
+        const newUser: CreateUser = {
+          name: formData.name,
+          username: formData.username,
+          password: formData.password,
+          roles: selectedRoles
+        };
+        
+        await api.createUser(newUser);
+        toast.success('Usuario creado exitosamente');
       }
-      setUsers(prev => [...prev, user]);
-      toast.success('Usuario creado exitosamente');
+      
+      setIsDialogOpen(false);
+      resetForm();
+      await loadUsers(); // Recargar datos
+    } catch (error) {
+      toast.error(editingUser ? 'Error al actualizar usuario' : 'Error al crear usuario');
+      console.error(error);
+    } finally {
+      setSubmitting(false);
     }
-    
-    setIsDialogOpen(false);
-    resetForm();
   };
 
-  const handleDelete = () => {
-    if (deletingUser) {
-      setUsers(prevUsers => prevUsers.filter(u => u.id !== deletingUser.id));
+  const handleDelete = async () => {
+    if (!deletingUser) return;
+    
+    try {
+      setSubmitting(true);
+      await api.deleteUser(deletingUser.id);
+      
       toast.success('Usuario eliminado exitosamente');
       setIsDeleteDialogOpen(false);
       setDeletingUser(null);
+      await loadUsers(); // Recargar datos
+    } catch (error) {
+      toast.error('Error al eliminar usuario');
+      console.error(error);
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -195,6 +229,7 @@ export default function Users() {
                   value={formData.name}
                   onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
                   required 
+                  disabled={submitting}
                 />
               </div>
               <div className="space-y-2">
@@ -205,6 +240,7 @@ export default function Users() {
                   value={formData.username}
                   onChange={(e) => setFormData(prev => ({ ...prev, username: e.target.value }))}
                   required 
+                  disabled={submitting}
                 />
               </div>
               <div className="space-y-2">
@@ -218,6 +254,7 @@ export default function Users() {
                   value={formData.password}
                   onChange={(e) => setFormData(prev => ({ ...prev, password: e.target.value }))}
                   required={!editingUser}
+                  disabled={submitting}
                 />
               </div>
               <div className="space-y-2">
@@ -229,6 +266,7 @@ export default function Users() {
                         id={role} 
                         checked={selectedRoles.includes(role)}
                         onCheckedChange={() => toggleRole(role)}
+                        disabled={submitting}
                       />
                       <label htmlFor={role} className="text-sm cursor-pointer">
                         {roleLabels[role]}
@@ -238,10 +276,19 @@ export default function Users() {
                 </div>
               </div>
               <div className="flex justify-end gap-3">
-                <Button type="button" variant="outline" onClick={() => handleDialogClose(false)}>
+                <Button 
+                  type="button" 
+                  variant="outline" 
+                  onClick={() => handleDialogClose(false)}
+                  disabled={submitting}
+                >
                   Cancelar
                 </Button>
-                <Button type="submit" disabled={selectedRoles.length === 0}>
+                <Button 
+                  type="submit" 
+                  disabled={selectedRoles.length === 0 || submitting}
+                >
+                  {submitting && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
                   {editingUser ? 'Actualizar' : 'Crear'} Usuario
                 </Button>
               </div>
@@ -291,13 +338,19 @@ export default function Users() {
                   </div>
                 </div>
                 <div className="flex justify-end gap-3">
-                  <Button variant="outline" onClick={() => setIsToggleStatusDialogOpen(false)}>
+                  <Button 
+                    variant="outline" 
+                    onClick={() => setIsToggleStatusDialogOpen(false)}
+                    disabled={submitting}
+                  >
                     Cancelar
                   </Button>
                   <Button 
                     variant={togglingUser.isActive ? "destructive" : "default"}
                     onClick={handleToggleStatus}
+                    disabled={submitting}
                   >
+                    {submitting && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
                     {togglingUser.isActive 
                       ? <><PowerOff className="h-4 w-4 mr-2" /> Desactivar</>
                       : <><Power className="h-4 w-4 mr-2" /> Activar</>
@@ -341,10 +394,19 @@ export default function Users() {
                   </div>
                 </div>
                 <div className="flex justify-end gap-3">
-                  <Button variant="outline" onClick={() => setIsDeleteDialogOpen(false)}>
+                  <Button 
+                    variant="outline" 
+                    onClick={() => setIsDeleteDialogOpen(false)}
+                    disabled={submitting}
+                  >
                     Cancelar
                   </Button>
-                  <Button variant="destructive" onClick={handleDelete}>
+                  <Button 
+                    variant="destructive" 
+                    onClick={handleDelete}
+                    disabled={submitting}
+                  >
+                    {submitting && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
                     <Trash2 className="h-4 w-4 mr-2" />
                     Eliminar Usuario
                   </Button>
@@ -399,142 +461,167 @@ export default function Users() {
           </CardContent>
         </Card>
 
-        {/* Users Table / Mobile Cards */}
-        {isMobile ? (
-          <div className="space-y-3">
-            {filteredUsers.map(user => (
-              <MobileCard key={user.id} className={!user.isActive ? 'opacity-60' : ''}>
-                <MobileCardHeader>
-                  <div className="flex items-center gap-3 flex-1 min-w-0">
-                    <Avatar className="flex-shrink-0">
-                      <AvatarFallback className={`${user.isActive ? 'bg-primary' : 'bg-muted-foreground'} text-primary-foreground`}>
-                        {getInitials(user.name)}
-                      </AvatarFallback>
-                    </Avatar>
-                    <div className="flex-1 min-w-0">
-                      <p className="font-medium flex items-center gap-2 truncate">
-                        {user.name}
-                        {!user.isActive && (
-                          <Badge variant="secondary" className="text-xs flex-shrink-0">Inactivo</Badge>
-                        )}
-                      </p>
-                      <p className="text-sm text-muted-foreground truncate">{user.username}</p>
-                    </div>
-                  </div>
-                  <div className="flex gap-1 flex-shrink-0">
-                    <Button 
-                      variant="ghost" 
-                      size="icon"
-                      className="h-8 w-8"
-                      onClick={() => openToggleStatusDialog(user)}
-                      title={user.isActive ? 'Desactivar usuario' : 'Activar usuario'}
-                    >
-                      {user.isActive 
-                        ? <PowerOff className="h-4 w-4 text-yellow-600" />
-                        : <Power className="h-4 w-4 text-green-600" />
-                      }
-                    </Button>
-                    <Button 
-                      variant="ghost" 
-                      size="icon"
-                      className="h-8 w-8"
-                      onClick={() => openEditDialog(user)}
-                    >
-                      <Edit2 className="h-4 w-4" />
-                    </Button>
-                    <Button 
-                      variant="ghost" 
-                      size="icon"
-                      className="h-8 w-8"
-                      onClick={() => openDeleteDialog(user)}
-                      disabled={user.roles.includes('admin')}
-                    >
-                      <Trash2 className="h-4 w-4 text-destructive" />
-                    </Button>
-                  </div>
-                </MobileCardHeader>
-                
-                <div className="flex flex-wrap gap-1 pt-2">
-                  {user.roles.map(role => (
-                    <Badge key={role} className={roleColors[role]}>
-                      {roleLabels[role]}
-                    </Badge>
-                  ))}
-                </div>
-              </MobileCard>
-            ))}
+        {loading && (
+          <div className="flex items-center justify-center py-8">
+            <Loader2 className="h-8 w-8 animate-spin text-primary" />
           </div>
-        ) : (
+        )}
+        
+        {!loading && filteredUsers.length === 0 && (
           <Card>
-            <CardContent className="p-0">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Usuario</TableHead>
-                    <TableHead>Nombre de usuario</TableHead>
-                    <TableHead>Roles</TableHead>
-                    <TableHead>Estado</TableHead>
-                    <TableHead className="text-right">Acciones</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {filteredUsers.map(user => (
-                    <TableRow key={user.id} className={!user.isActive ? 'opacity-60' : ''}>
-                      <TableCell>
-                        <div className="flex items-center gap-3">
-                          <Avatar>
-                            <AvatarFallback className={`${user.isActive ? 'bg-primary' : 'bg-muted-foreground'} text-primary-foreground`}>
-                              {getInitials(user.name)}
-                            </AvatarFallback>
-                          </Avatar>
-                          <span className="font-medium">{user.name}</span>
+            <CardContent className="p-8 text-center text-muted-foreground">
+              No se encontraron usuarios
+            </CardContent>
+          </Card>
+        )}
+
+        {!loading && filteredUsers.length > 0 && (
+          <>
+            {isMobile ? (
+              <div className="space-y-3">
+                {filteredUsers.map(user => (
+                  <MobileCard key={user.id} className={!user.isActive ? 'opacity-60' : ''}>
+                    <MobileCardHeader>
+                      <div className="flex items-center gap-3 flex-1 min-w-0">
+                        <Avatar className="flex-shrink-0">
+                          <AvatarFallback className={`${user.isActive ? 'bg-primary' : 'bg-muted-foreground'} text-primary-foreground`}>
+                            {getInitials(user.name)}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div className="flex-1 min-w-0">
+                          <p className="font-medium flex items-center gap-2 truncate">
+                            {user.name}
+                            {!user.isActive && (
+                              <Badge variant="secondary" className="text-xs flex-shrink-0">Inactivo</Badge>
+                            )}
+                          </p>
+                          <p className="text-sm text-muted-foreground truncate">{user.username}</p>
                         </div>
-                      </TableCell>
-                      <TableCell className="text-muted-foreground">{user.username}</TableCell>
-                      <TableCell>
-                        <div className="flex flex-wrap gap-1">
-                          {user.roles.map(role => (
-                            <Badge key={role} className={roleColors[role]}>
-                              {roleLabels[role]}
-                            </Badge>
-                          ))}
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <Badge variant={user.isActive ? "default" : "secondary"}>
-                          {user.isActive ? 'Activo' : 'Inactivo'}
-                        </Badge>
-                      </TableCell>
-                      <TableCell className="text-right">
+                      </div>
+                      <div className="flex gap-1 flex-shrink-0">
                         <Button 
                           variant="ghost" 
-                          size="icon" 
+                          size="icon"
+                          className="h-8 w-8"
                           onClick={() => openToggleStatusDialog(user)}
                           title={user.isActive ? 'Desactivar usuario' : 'Activar usuario'}
+                          disabled={submitting}
                         >
                           {user.isActive 
                             ? <PowerOff className="h-4 w-4 text-yellow-600" />
                             : <Power className="h-4 w-4 text-green-600" />
                           }
                         </Button>
-                        <Button variant="ghost" size="icon" onClick={() => openEditDialog(user)}>
+                        <Button 
+                          variant="ghost" 
+                          size="icon"
+                          className="h-8 w-8"
+                          onClick={() => openEditDialog(user)}
+                          disabled={submitting}
+                        >
                           <Edit2 className="h-4 w-4" />
                         </Button>
                         <Button 
                           variant="ghost" 
-                          size="icon" 
+                          size="icon"
+                          className="h-8 w-8"
                           onClick={() => openDeleteDialog(user)}
-                          disabled={user.roles.includes('admin')}
+                          disabled={user.roles.includes('admin') || submitting}
                         >
                           <Trash2 className="h-4 w-4 text-destructive" />
                         </Button>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </CardContent>
-          </Card>
+                      </div>
+                    </MobileCardHeader>
+                    
+                    <div className="flex flex-wrap gap-1 pt-2">
+                      {user.roles.map(role => (
+                        <Badge key={role} className={roleColors[role]}>
+                          {roleLabels[role]}
+                        </Badge>
+                      ))}
+                    </div>
+                  </MobileCard>
+                ))}
+              </div>
+            ) : (
+              <Card>
+                <CardContent className="p-0">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Usuario</TableHead>
+                        <TableHead>Nombre de usuario</TableHead>
+                        <TableHead>Roles</TableHead>
+                        <TableHead>Estado</TableHead>
+                        <TableHead className="text-right">Acciones</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {filteredUsers.map(user => (
+                        <TableRow key={user.id} className={!user.isActive ? 'opacity-60' : ''}>
+                          <TableCell>
+                            <div className="flex items-center gap-3">
+                              <Avatar>
+                                <AvatarFallback className={`${user.isActive ? 'bg-primary' : 'bg-muted-foreground'} text-primary-foreground`}>
+                                  {getInitials(user.name)}
+                                </AvatarFallback>
+                              </Avatar>
+                              <span className="font-medium">{user.name}</span>
+                            </div>
+                          </TableCell>
+                          <TableCell className="text-muted-foreground">{user.username}</TableCell>
+                          <TableCell>
+                            <div className="flex flex-wrap gap-1">
+                              {user.roles.map(role => (
+                                <Badge key={role} className={roleColors[role]}>
+                                  {roleLabels[role]}
+                                </Badge>
+                              ))}
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <Badge variant={user.isActive ? "default" : "secondary"}>
+                              {user.isActive ? 'Activo' : 'Inactivo'}
+                            </Badge>
+                          </TableCell>
+                          <TableCell className="text-right">
+                            <Button 
+                              variant="ghost" 
+                              size="icon" 
+                              onClick={() => openToggleStatusDialog(user)}
+                              title={user.isActive ? 'Desactivar usuario' : 'Activar usuario'}
+                              disabled={submitting}
+                            >
+                              {user.isActive 
+                                ? <PowerOff className="h-4 w-4 text-yellow-600" />
+                                : <Power className="h-4 w-4 text-green-600" />
+                              }
+                            </Button>
+                            <Button 
+                              variant="ghost" 
+                              size="icon" 
+                              onClick={() => openEditDialog(user)}
+                              disabled={submitting}
+                            >
+                              <Edit2 className="h-4 w-4" />
+                            </Button>
+                            <Button 
+                              variant="ghost" 
+                              size="icon" 
+                              onClick={() => openDeleteDialog(user)}
+                              disabled={user.roles.includes('admin') || submitting}
+                            >
+                              <Trash2 className="h-4 w-4 text-destructive" />
+                            </Button>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </CardContent>
+              </Card>
+            )}
+          </>
         )}
       </div>
     </MainLayout>
