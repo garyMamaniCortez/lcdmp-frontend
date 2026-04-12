@@ -405,26 +405,27 @@ export default function Users() {
             {filteredUsers.map(user => (
               <MobileCard key={user.id} className={!user.isActive ? 'opacity-60' : ''}>
                 <MobileCardHeader>
-                  <div className="flex items-center gap-3">
-                    <Avatar>
+                  <div className="flex items-center gap-3 flex-1 min-w-0">
+                    <Avatar className="flex-shrink-0">
                       <AvatarFallback className={`${user.isActive ? 'bg-primary' : 'bg-muted-foreground'} text-primary-foreground`}>
                         {getInitials(user.name)}
                       </AvatarFallback>
                     </Avatar>
-                    <div>
-                      <p className="font-medium flex items-center gap-2">
+                    <div className="flex-1 min-w-0">
+                      <p className="font-medium flex items-center gap-2 truncate">
                         {user.name}
                         {!user.isActive && (
-                          <Badge variant="secondary" className="text-xs">Inactivo</Badge>
+                          <Badge variant="secondary" className="text-xs flex-shrink-0">Inactivo</Badge>
                         )}
                       </p>
-                      <p className="text-sm text-muted-foreground">{user.username}</p>
+                      <p className="text-sm text-muted-foreground truncate">{user.username}</p>
                     </div>
                   </div>
-                  <div className="flex gap-1">
+                  <div className="flex gap-1 flex-shrink-0">
                     <Button 
                       variant="ghost" 
-                      size="icon" 
+                      size="icon"
+                      className="h-8 w-8"
                       onClick={() => openToggleStatusDialog(user)}
                       title={user.isActive ? 'Desactivar usuario' : 'Activar usuario'}
                     >
@@ -433,12 +434,18 @@ export default function Users() {
                         : <Power className="h-4 w-4 text-green-600" />
                       }
                     </Button>
-                    <Button variant="ghost" size="icon" onClick={() => openEditDialog(user)}>
+                    <Button 
+                      variant="ghost" 
+                      size="icon"
+                      className="h-8 w-8"
+                      onClick={() => openEditDialog(user)}
+                    >
                       <Edit2 className="h-4 w-4" />
                     </Button>
                     <Button 
                       variant="ghost" 
-                      size="icon" 
+                      size="icon"
+                      className="h-8 w-8"
                       onClick={() => openDeleteDialog(user)}
                       disabled={user.roles.includes('admin')}
                     >
