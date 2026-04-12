@@ -86,4 +86,80 @@ export class MockUsersApi implements IUsersApi {
   }
 }
 
-export const defaultUsersApi = new MockUsersApi();
+export class UsersApi implements IUsersApi {
+  
+  async getUsers(searchTerm: string = ''): Promise<User[]> {
+    try {
+      const response = await api.get('/users', {
+        params: { search: searchTerm || undefined }
+      });
+
+      if (!response.data.success) {
+        throw new Error(response.data.message || 'Error al obtener usuarios');
+      }
+
+      return response.data.data as User[];
+    } catch (error: any) {
+      console.error('Error en getUsers:', error);
+      throw new Error(error.response?.data?.message || error.message || 'Error de conexión');
+    }
+  }
+
+  async createUser(user: CreateUser): Promise<void> {
+    try {
+      const response = await api.post('/users', user);
+
+      if (!response.data.success && response.status !== 201) {
+        throw new Error(response.data.message || 'Error al crear usuario');
+      }
+    } catch (error: any) {
+      console.error('Error en createUser:', error);
+      const message = error.response?.data?.message || error.message || 'Error al crear usuario';
+      throw new Error(message);
+    }
+  }
+
+  async editUser(id: string, user: Partial<CreateUser>): Promise<void> {
+    try {
+      const response = await api.put(`/users/${id}`, user);
+
+      if (!response.data.success) {
+        throw new Error(response.data.message || 'Error al actualizar usuario');
+      }
+    } catch (error: any) {
+      console.error('Error en editUser:', error);
+      const message = error.response?.data?.message || error.message || 'Error al actualizar usuario';
+      throw new Error(message);
+    }
+  }
+
+  async deleteUser(id: string): Promise<void> {
+    try {
+      const response = await api.delete(`/users/${id}`);
+
+      if (!response.data.success) {
+        throw new Error(response.data.message || 'Error al eliminar usuario');
+      }
+    } catch (error: any) {
+      console.error('Error en deleteUser:', error);
+      const message = error.response?.data?.message || error.message || 'Error al eliminar usuario';
+      throw new Error(message);
+    }
+  }
+
+  async toggleUserStatus(id: string): Promise<void> {
+    try {
+      const response = await api.patch(`/users/${id}/toggle-status`);
+
+      if (!response.data.success) {
+        throw new Error(response.data.message || 'Error al cambiar estado del usuario');
+      }
+    } catch (error: any) {
+      console.error('Error en toggleUserStatus:', error);
+      const message = error.response?.data?.message || error.message || 'Error al cambiar estado del usuario';
+      throw new Error(message);
+    }
+  }
+}
+
+export const defaultUsersApi = new UsersApi();
