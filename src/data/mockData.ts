@@ -1,4 +1,13 @@
-import { Product, RawMaterial, BakedProduct, Order, Flavor, SpecialMenu, SweetTableCombo, CashRegister, Branch } from '@/types';
+import { Product, RawMaterial, BakedProduct, Order, Flavor, SpecialMenu, SweetTableCombo, CashRegister, Branch, UserRole, User } from '@/types';
+
+export const mockUsers: User[] = [
+  { id: '1', username: 'admin@lacasademipa.com', name: 'Carlos Administrador', roles: ['admin'] as UserRole[]},
+  { id: '2', username: 'vendedor@lacasademipa.com', name: 'María Vendedora', roles: ['seller'] as UserRole[]},
+  { id: '3', username: 'panadero@lacasademipa.com', name: 'Juan Panadero', roles: ['baker'] as UserRole[]},
+  { id: '4', username: 'decorador@lacasademipa.com', name: 'Ana Decoradora', roles: ['designer'] as UserRole[]},
+  { id: '5', username: 'armador@lacasademipa.com', name: 'Pedro Armador', roles: ['assembler'] as UserRole[]},
+  { id: '6', username: 'delivery@lacasademipa.com', name: 'Luis Delivery', roles: ['delivery'] as UserRole[]},
+];
 
 // Raw Materials
 export const mockRawMaterials: RawMaterial[] = [

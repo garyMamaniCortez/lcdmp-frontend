@@ -51,7 +51,15 @@ export interface User {
   id: string;
   username: string;
   name: string;
-  roles: UserRole[]
+  roles: UserRole[];
+  isActive?: boolean;
+}
+
+export interface CreateUser {
+  username: string;
+  password: string;
+  name: string;
+  roles: UserRole[];
 }
 
 // Inventory Types
