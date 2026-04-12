@@ -5,17 +5,16 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { MobileCard, MobileCardHeader, useIsMobile } from '@/components/ui/responsive-table';
-import { Plus, Search, Eye, RefreshCw, X, Filter } from 'lucide-react';
-import { mockFlavors, mockOrders } from '@/data/mockData';
+import { Plus, Search, Eye, RefreshCw, X, Filter, Pencil, Trash, Edit, Trash2 } from 'lucide-react';
+import { mockFlavors, mockOrders, mockProducts } from '@/data/mockData';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
-import { Order, OrderStatus } from '@/types';
+import { CustomCake, Order, OrderStatus } from '@/types';
 import { toast } from 'sonner';
 import { statusConfig } from '@/types/consts';
 
@@ -305,6 +304,11 @@ export default function Orders() {
                                   Mesa dulce ({order.sweetTableCombo.totalQuantity} postres)
                                 </p>
                               )}
+                              {order.items.length > 0 && (
+                                <p className="text-sm">
+                                  {order.items.map((item,i) => `${item.quantity} ${item.product.name}`).join(', ')}
+                                </p>
+                              )}
                             </div>
                           </TableCell>
                           <TableCell>
@@ -320,14 +324,30 @@ export default function Orders() {
                             </Badge>
                           </TableCell>
                           <TableCell className="text-right">
-                            <Button 
-                              variant="ghost" 
-                              size="icon"
-                              onClick={() => setSelectedOrder(order)}
-                              className="h-8 w-8"
-                            >
-                              <Eye className="h-4 w-4" />
-                            </Button>
+                            <div className="flex justify-end gap-2">
+                              <Button 
+                                variant="ghost" 
+                                size="icon"
+                                onClick={() => setSelectedOrder(order)}
+                                className="h-8 w-8"
+                              >
+                                <Eye className="h-4 w-4" />
+                              </Button>
+                              <Button 
+                                variant="outline" 
+                                size="sm" 
+                                onClick={() => handleEditOrder(order)}
+                              >
+                                <Edit className="h-4 w-4 mr-1" /> Editar
+                              </Button>
+                              <Button 
+                                variant="destructive" 
+                                size="sm" 
+                                onClick={() => handleDeleteOrder(order.id)}
+                              >
+                                <Trash2 className="h-4 w-4 mr-1" /> Eliminar
+                              </Button>
+                            </div>
                           </TableCell>
                         </TableRow>
                       );
@@ -354,9 +374,25 @@ export default function Orders() {
 }
 
 function NewOrderForm({ onClose }: { onClose: () => void }) {
-  const [orderType, setOrderType] = useState<'cake' | 'combo' | 'both'>('cake');
+  const [orderType, setOrderType] = useState<'cake' | 'products' | 'sweet_table' | 'mixed'>('cake');
+  const [selectedOptions, setSelectedOptions] = useState({
+    hasCake: true,
+    hasProducts: false,
+    hasSweetTable: false
+  });
+  
+  const [customCakes, setCustomCakes] = useState<Partial<CustomCake>[]>([
+  ]);
+  
+  const [selectedProducts, setSelectedProducts] = useState<Array<{
+    productId: string;
+    quantity: number;
+    notes?: string;
+  }>>([]);
+  
   const cakeFlavors = mockFlavors.filter(f => f.type === 'cake' && f.isActive);
   const fillingFlavors = mockFlavors.filter(f => f.type === 'filling' && f.isActive);
+  const catalogProducts = mockProducts.filter(p => p.isActive && p.location === 'store');
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -364,9 +400,30 @@ function NewOrderForm({ onClose }: { onClose: () => void }) {
     onClose();
   };
 
+  const addCake = () => {
+    setCustomCakes([...customCakes, { portions: 15, quantity: 1 }]);
+  };
+
+  const removeCake = (index: number) => {
+    setCustomCakes(customCakes.filter((_, i) => i !== index));
+  };
+
+  const updateCake = (index: number, field: keyof CustomCake, value: any) => {
+    const updated = [...customCakes];
+    updated[index] = { ...updated[index], [field]: value };
+    setCustomCakes(updated);
+  };
+
+  const addProduct = () => {
+    setSelectedProducts([...selectedProducts, { productId: '', quantity: 1 }]);
+  };
+
+  const removeProduct = (index: number) => {
+    setSelectedProducts(selectedProducts.filter((_, i) => i !== index));
+  };
+
   return (
     <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6 px-1">
-      {/* Customer Info */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
         <div className="space-y-1.5 sm:space-y-2">
           <Label className="text-sm">Nombre del cliente *</Label>
@@ -389,92 +446,344 @@ function NewOrderForm({ onClose }: { onClose: () => void }) {
         </div>
       </div>
 
-      {/* Order Type */}
-      <div className="space-y-2">
-        <Label className="text-sm">Tipo de pedido</Label>
-        <Tabs value={orderType} onValueChange={(v) => setOrderType(v as typeof orderType)}>
-          <TabsList className="grid grid-cols-3 w-full">
-            <TabsTrigger value="cake" className="text-xs sm:text-sm">Torta</TabsTrigger>
-            <TabsTrigger value="combo" className="text-xs sm:text-sm">Mesa Dulce</TabsTrigger>
-            <TabsTrigger value="both" className="text-xs sm:text-sm">Ambos</TabsTrigger>
-          </TabsList>
-
-          <TabsContent value="cake" className="space-y-3 sm:space-y-4 mt-3 sm:mt-4">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <div className="space-y-1.5">
-                <Label className="text-sm">Porciones</Label>
-                <Select>
-                  <SelectTrigger className="text-sm">
-                    <SelectValue placeholder="Seleccionar" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {[10, 15, 20, 25, 30, 40, 50].map(p => (
-                      <SelectItem key={p} value={p.toString()}>{p} porciones</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+      <div className="space-y-3 border rounded-lg p-4 bg-muted/30">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <label className="flex items-center gap-2 sm:justify-self-center justify-self-start">
+            <div className="flex items-center gap-2 cursor-pointer group">
+              <div className="relative flex items-center">
+                <Input
+                  type="checkbox"
+                  checked={selectedOptions.hasCake}
+                  onChange={(e) => {
+                    setSelectedOptions({...selectedOptions, hasCake: e.target.checked});
+                    if (!e.target.checked && customCakes.length > 0) {
+                      setCustomCakes([]);
+                    }
+                  }}
+                  className="sr-only peer"
+                  id="hasCake"
+                />
+                <div className="w-5 h-5 border-2 rounded-md border-muted-foreground/30 peer-checked:border-primary peer-checked:bg-primary transition-all duration-200 flex items-center justify-center group-hover:border-primary/50">
+                  <svg 
+                    className="w-3 h-3 text-primary-foreground opacity-0 peer-checked:opacity-100 transition-opacity duration-200" 
+                    fill="none" 
+                    viewBox="0 0 24 24" 
+                    stroke="currentColor"
+                  >
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                  </svg>
+                </div>
               </div>
+              <label htmlFor="hasCake" className="text-sm font-medium cursor-pointer select-none group-hover:text-primary transition-colors">
+                Torta personalizada
+              </label>
+            </div>
+          </label>
+          
+          <label className="flex items-center gap-2 sm:justify-self-center justify-self-start">
+            <div className="relative flex items-center">
+                <Input 
+                  type="checkbox" 
+                  checked={selectedOptions.hasProducts}
+                  onChange={(e) => {
+                    setSelectedOptions({...selectedOptions, hasProducts: e.target.checked});
+                    if (!e.target.checked) {
+                      setSelectedProducts([]);
+                    }
+                  }}
+                  className="sr-only peer"
+                  id='hasItems'
+                />
+                <div className="w-5 h-5 border-2 rounded-md border-muted-foreground/30 peer-checked:border-primary peer-checked:bg-primary transition-all duration-200 flex items-center justify-center group-hover:border-primary/50">
+                  <svg 
+                    className="w-3 h-3 text-primary-foreground opacity-0 peer-checked:opacity-100 transition-opacity duration-200" 
+                    fill="none" 
+                    viewBox="0 0 24 24" 
+                    stroke="currentColor"
+                  >
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                  </svg>
+                </div>
+              </div>
+            <span className="text-sm">Productos del catálogo</span>
+          </label>
+          
+          <label className="flex items-center gap-2 sm:justify-self-center justify-self-start">
+            <div className="relative flex items-center">
+                <Input 
+                  type="checkbox" 
+                    checked={selectedOptions.hasSweetTable}
+                    onChange={(e) => {
+                      setSelectedOptions({...selectedOptions, hasSweetTable: e.target.checked});
+                    }}
+                  className="sr-only peer"
+                  id='hasItems'
+                />
+                <div className="w-5 h-5 border-2 rounded-md border-muted-foreground/30 peer-checked:border-primary peer-checked:bg-primary transition-all duration-200 flex items-center justify-center group-hover:border-primary/50">
+                  <svg 
+                    className="w-3 h-3 text-primary-foreground opacity-0 peer-checked:opacity-100 transition-opacity duration-200" 
+                    fill="none" 
+                    viewBox="0 0 24 24" 
+                    stroke="currentColor"
+                  >
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                  </svg>
+                </div>
+              </div>
+            <span className="text-sm">Mesa dulce</span>
+          </label>
+        </div>
+      </div>
+
+      {selectedOptions.hasCake && (
+        <div className="space-y-4 border rounded-lg p-4">
+          <div className="flex justify-between items-center">
+            <h3 className="font-semibold text-base">Tortas Personalizadas</h3>
+            <Button 
+              type="button" 
+              variant="outline" 
+              size="sm"
+              onClick={addCake}
+            >
+              <Plus className="h-4 w-4 mr-1" /> Agregar Torta
+            </Button>
+          </div>
+          
+          {customCakes.map((cake, index) => (
+            <div key={index} className="border rounded-lg p-3 space-y-3 relative">
+              <div className="flex justify-between items-center">
+                <span className="font-medium text-sm">Torta #{index + 1}</span>
+                {customCakes.length > 1 && (
+                  <Button 
+                    type="button" 
+                    variant="ghost" 
+                    size="sm"
+                    onClick={() => removeCake(index)}
+                    className="text-destructive"
+                  >
+                    <X className="h-4 w-4" />
+                  </Button>
+                )}
+              </div>
+              
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div className="space-y-1.5">
+                  <Label className="text-sm">Cantidad</Label>
+                  <Input 
+                    type="number" 
+                    min="1"
+                    value={cake.quantity || 1}
+                    onChange={(e) => updateCake(index, 'quantity', parseInt(e.target.value))}
+                    className="text-sm"
+                  />
+                </div>
+                <div className="space-y-1.5 sm:col-span-2">
+                  <Label className="text-sm">Porciones por torta</Label>
+                  <Select 
+                    value={cake.portions?.toString()}
+                    onValueChange={(v) => updateCake(index, 'portions', parseInt(v))}
+                  >
+                    <SelectTrigger className="text-sm">
+                      <SelectValue placeholder="Seleccionar" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {[10, 15, 20, 25, 30, 40, 50].map(p => (
+                        <SelectItem key={p} value={p.toString()}>{p} porciones</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div className="space-y-1.5">
+                  <Label className="text-sm">Forma (opcional)</Label>
+                  <Select 
+                    value={cake.shape}
+                    onValueChange={(v) => updateCake(index, 'shape', v)}
+                  >
+                    <SelectTrigger className="text-sm">
+                      <SelectValue placeholder="Seleccionar" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="round">Redonda</SelectItem>
+                      <SelectItem value="square">Cuadrada</SelectItem>
+                      <SelectItem value="rectangle">Rectangular</SelectItem>
+                      <SelectItem value="heart">Corazón</SelectItem>
+                      <SelectItem value="two-tier">Dos pisos</SelectItem>
+                      <SelectItem value="three-tier">Tres pisos</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div className="space-y-1.5">
+                  <Label className="text-sm">Sabor de torta</Label>
+                  <Select 
+                    value={cake.cakeFlavor}
+                    onValueChange={(v) => updateCake(index, 'cakeFlavor', v)}
+                  >
+                    <SelectTrigger className="text-sm">
+                      <SelectValue placeholder="Seleccionar" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {cakeFlavors.map(f => (
+                        <SelectItem key={f.id} value={f.name}>{f.name}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-1.5">
+                  <Label className="text-sm">Sabor de relleno</Label>
+                  <Select>
+                    <SelectTrigger className="text-sm">
+                      <SelectValue placeholder="Seleccionar" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {fillingFlavors.map(f => (
+                        <SelectItem key={f.id} value={f.name}>{f.name}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
               <div className="space-y-1.5">
-                <Label className="text-sm">Forma (opcional)</Label>
-                <Select>
-                  <SelectTrigger className="text-sm">
-                    <SelectValue placeholder="Seleccionar" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="round">Redonda</SelectItem>
-                    <SelectItem value="square">Cuadrada</SelectItem>
-                    <SelectItem value="rectangle">Rectangular</SelectItem>
-                    <SelectItem value="heart">Corazón</SelectItem>
-                    <SelectItem value="two-tier">Dos pisos</SelectItem>
-                    <SelectItem value="three-tier">Tres pisos</SelectItem>
-                  </SelectContent>
-                </Select>
+                <Label className="text-sm">Descripción del diseño</Label>
+                <Textarea 
+                  placeholder="Describe el diseño deseado..." 
+                  className="text-sm" 
+                  rows={2}
+                  value={cake.design || ''}
+                  onChange={(e) => updateCake(index, 'design', e.target.value)}
+                />
+              </div>
+
+              <div className="space-y-1.5">
+                <Label className="text-sm">Dedicatoria (opcional)</Label>
+                <Input 
+                  placeholder="Texto para la torta" 
+                  className="text-sm"
+                  value={cake.dedication || ''}
+                  onChange={(e) => updateCake(index, 'dedication', e.target.value)}
+                />
+              </div>
+
+              <div className="space-y-1.5">
+                <Label className="text-sm">Precio (Bs.)</Label>
+                <Input 
+                  type="number"
+                  placeholder="0" 
+                  className="text-sm"
+                  value={cake.price || ''}
+                  onChange={(e) => updateCake(index, 'price', parseFloat(e.target.value))}
+                />
               </div>
             </div>
+          ))}
+        </div>
+      )}
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <div className="space-y-1.5">
-                <Label className="text-sm">Sabor de torta</Label>
-                <Select>
-                  <SelectTrigger className="text-sm">
-                    <SelectValue placeholder="Seleccionar" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {cakeFlavors.map(f => (
-                      <SelectItem key={f.id} value={f.id}>{f.name}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+      {selectedOptions.hasProducts && (
+        <div className="space-y-4 border rounded-lg p-4">
+          <div className="flex justify-between items-center">
+            <h3 className="font-semibold text-base">Productos del Catálogo</h3>
+            <Button 
+              type="button" 
+              variant="outline" 
+              size="sm"
+              onClick={addProduct}
+            >
+              <Plus className="h-4 w-4 mr-1" /> Agregar Producto
+            </Button>
+          </div>
+          
+          {selectedProducts.map((product, index) => (
+            <div key={index} className="border rounded-lg p-3 space-y-3">
+              <div className="flex justify-between items-center">
+                <span className="font-medium text-sm">Producto #{index + 1}</span>
+                <Button 
+                  type="button" 
+                  variant="ghost" 
+                  size="sm"
+                  onClick={() => removeProduct(index)}
+                  className="text-destructive"
+                >
+                  <X className="h-4 w-4" />
+                </Button>
               </div>
+              
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div className="space-y-1.5">
+                  <Label className="text-sm">Producto</Label>
+                  <Select 
+                    value={product.productId}
+                    onValueChange={(v) => {
+                      const updated = [...selectedProducts];
+                      updated[index].productId = v;
+                      setSelectedProducts(updated);
+                    }}
+                  >
+                    <SelectTrigger className="text-sm">
+                      <SelectValue placeholder="Seleccionar producto" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {catalogProducts.map(p => (
+                        <SelectItem key={p.id} value={p.id}>
+                          {p.name} - Bs. {p.basePrice}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-1.5">
+                  <Label className="text-sm">Cantidad</Label>
+                  <Input 
+                    type="number" 
+                    min="1"
+                    value={product.quantity}
+                    onChange={(e) => {
+                      const updated = [...selectedProducts];
+                      updated[index].quantity = parseInt(e.target.value);
+                      setSelectedProducts(updated);
+                    }}
+                    className="text-sm"
+                  />
+                </div>
+              </div>
+              
               <div className="space-y-1.5">
-                <Label className="text-sm">Sabor de relleno</Label>
-                <Select>
-                  <SelectTrigger className="text-sm">
-                    <SelectValue placeholder="Seleccionar" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {fillingFlavors.map(f => (
-                      <SelectItem key={f.id} value={f.id}>{f.name}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <Label className="text-sm">Notas (opcional)</Label>
+                <Input 
+                  placeholder="Ej: Sin gluten, decoración especial..." 
+                  className="text-sm"
+                  value={product.notes || ''}
+                  onChange={(e) => {
+                    const updated = [...selectedProducts];
+                    updated[index].notes = e.target.value;
+                    setSelectedProducts(updated);
+                  }}
+                />
               </div>
             </div>
+          ))}
+          
+          {selectedProducts.length === 0 && (
+            <p className="text-sm text-muted-foreground text-center py-4">
+              No hay productos agregados. Haz clic en "Agregar Producto" para comenzar.
+            </p>
+          )}
+        </div>
+      )}
 
+      {selectedOptions.hasSweetTable && (
+        <div className="space-y-4 border rounded-lg p-4">
+          <h3 className="font-semibold text-base">Mesa Dulce</h3>
+          
+          <div className="space-y-3">
             <div className="space-y-1.5">
-              <Label className="text-sm">Descripción del diseño</Label>
-              <Textarea placeholder="Describe el diseño deseado..." className="text-sm" rows={3} />
-            </div>
-
-            <div className="space-y-1.5">
-              <Label className="text-sm">Dedicatoria (opcional)</Label>
-              <Input placeholder="Texto para la torta" className="text-sm" />
-            </div>
-          </TabsContent>
-
-          <TabsContent value="combo" className="space-y-3 mt-3">
-            <div className="space-y-1.5">
-              <Label className="text-sm">Cantidad de postres</Label>
+              <Label className="text-sm">Combo predefinido</Label>
               <Select>
                 <SelectTrigger className="text-sm">
                   <SelectValue placeholder="Seleccionar combo" />
@@ -486,17 +795,38 @@ function NewOrderForm({ onClose }: { onClose: () => void }) {
                 </SelectContent>
               </Select>
             </div>
-          </TabsContent>
+            
+            <div className="space-y-1.5">
+              <Label className="text-sm">Cantidad personalizada</Label>
+              <Input 
+                type="number" 
+                placeholder="Ej: 75" 
+                className="text-sm"
+              />
+            </div>
+            
+            <div className="space-y-1.5">
+              <Label className="text-sm">Precio total mesa dulce (Bs.)</Label>
+              <Input 
+                type="number" 
+                placeholder="0" 
+                className="text-sm"
+              />
+            </div>
+            
+            <div className="space-y-1.5">
+              <Label className="text-sm">Detalles adicionales</Label>
+              <Textarea 
+                placeholder="Tipos de postres, presentación, colores..." 
+                className="text-sm" 
+                rows={2}
+              />
+            </div>
+          </div>
+        </div>
+      )}
 
-          <TabsContent value="both" className="mt-3">
-            <p className="text-xs sm:text-sm text-muted-foreground">
-              Configure tanto la torta como la mesa dulce usando las opciones anteriores.
-            </p>
-          </TabsContent>
-        </Tabs>
-      </div>
-
-      {/* Delivery */}
+      {/* Delivery y Pago - Sin cambios */}
       <div className="space-y-3 sm:space-y-4 border-t pt-3 sm:pt-4">
         <div className="space-y-1.5">
           <Label className="text-sm">Dirección de envío (opcional)</Label>
@@ -575,27 +905,56 @@ function OrderDetail({ order }: { order: typeof orders[0] }) {
         </div>
       </div>
 
+      {/* Tortas personalizadas */}
       {order.customCakes.length > 0 && (
         <div className="border-t pt-3 sm:pt-4">
           <h4 className="font-medium text-sm sm:text-base mb-2">Tortas personalizadas</h4>
           {order.customCakes.map((cake, i) => (
             <div key={i} className="bg-muted/50 p-2 sm:p-3 rounded-lg mb-2 text-sm">
-              <p className="font-medium">{cake.portions} porciones - {cake.cakeFlavor}</p>
+              <div className="flex justify-between">
+                <p className="font-medium">
+                  {cake.quantity > 1 ? `${cake.quantity} x ` : ''}
+                  {cake.portions} porciones - {cake.cakeFlavor}
+                </p>
+                <p className="font-medium">Bs. {cake.price}</p>
+              </div>
               <p className="text-xs sm:text-sm text-muted-foreground">
                 Relleno: {cake.fillingFlavors.join(', ')}
               </p>
-              {cake.design && <p className="text-xs sm:text-sm mt-1">🎨 {cake.design}</p>}
-              {cake.dedication && <p className="text-xs sm:text-sm">💝 {cake.dedication}</p>}
-              <p className="font-medium mt-1">Bs. {cake.price}</p>
+              {cake.shape && <p className="text-xs sm:text-sm">Forma: {cake.shape}</p>}
+              {cake.design && <p className="text-xs sm:text-sm mt-1">{cake.design}</p>}
+              {cake.dedication && <p className="text-xs sm:text-sm">{cake.dedication}</p>}
             </div>
           ))}
         </div>
       )}
 
+      {/* Productos del catálogo */}
+      {order.items.length > 0 && (
+        <div className="border-t pt-3 sm:pt-4">
+          <h4 className="font-medium text-sm sm:text-base mb-2">📦 Productos del catálogo</h4>
+          {order.items.map((item, i) => (
+            <div key={i} className="bg-muted/50 p-2 sm:p-3 rounded-lg mb-2 text-sm">
+              <div className="flex justify-between">
+                <p className="font-medium">{item.quantity} x {item.product.name}</p>
+                <p className="font-medium">Bs. {item.price * item.quantity}</p>
+              </div>
+              {item.notes && (
+                <p className="text-xs text-muted-foreground mt-1">📝 {item.notes}</p>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Mesa Dulce */}
       {order.sweetTableCombo && (
         <div className="border-t pt-3 sm:pt-4">
-          <h4 className="font-medium text-sm sm:text-base mb-2">Mesa Dulce</h4>
-          <p className="text-sm">{order.sweetTableCombo.totalQuantity} postres - Bs. {order.sweetTableCombo.price}</p>
+          <h4 className="font-medium text-sm sm:text-base mb-2">🍰 Mesa Dulce</h4>
+          <div className="bg-muted/50 p-3 rounded-lg">
+            <p className="text-sm">{order.sweetTableCombo.totalQuantity} postres</p>
+            <p className="font-medium mt-1">Total: Bs. {order.sweetTableCombo.price}</p>
+          </div>
         </div>
       )}
 

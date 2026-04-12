@@ -135,6 +135,8 @@ export interface ComboProduct {
 }
 
 // Order Types
+export type OrderType = 'cake' | 'products' | 'sweet_table' | 'mixed';
+
 export type OrderStatus = 
   | 'pending' 
   | 'baking' 
@@ -148,6 +150,7 @@ export type PaymentMethod = 'cash' | 'qr';
 
 export interface Order {
   id: string;
+  orderType: OrderType;
   customerName: string;
   customerPhone: string;
   pickupDate: Date;
@@ -174,6 +177,7 @@ export interface OrderItem {
   product: Product;
   quantity: number;
   price: number;
+  notes?: string;
 }
 
 export interface CustomCake {
