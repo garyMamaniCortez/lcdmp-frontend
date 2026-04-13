@@ -1,4 +1,5 @@
-import { useState } from 'react';
+// src/pages/Products.tsx (versión modificada)
+import { useState, useEffect } from 'react';
 import { MainLayout } from '@/components/layout/MainLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -13,12 +14,16 @@ import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
 import { MobileCard, MobileCardHeader, MobileCardRow, useIsMobile } from '@/components/ui/responsive-table';
 import { Plus, Search, Edit2, Trash2, Cake, Package, Filter, X, PlusCircle, Loader2 } from 'lucide-react';
-import { mockProducts, mockFlavors } from '@/data/mockData';
 import { toast } from 'sonner';
-import { Flavor, Product } from '@/types';
+import { Flavor, Product, CreateProductData, EditProductData, AddStockData, CreateFlavorData, EditFlavorData } from '@/types';
+import { categories } from '@/types/consts';
+import { IProductsApi, defaultProductsApi } from '@/api/ProductsApi';
 
+interface ProductsProps {
+  api?: IProductsApi;
+}
 
-export default function Products() {
+export default function Products({ api = defaultProductsApi }: ProductsProps) {
   const isMobile = useIsMobile();
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
@@ -29,14 +34,52 @@ export default function Products() {
   const [deletingProduct, setDeletingProduct] = useState<Product | null>(null);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [stockProduct, setStockProduct] = useState<Product | null>(null);
-  const [products, setProducts] = useState<Product[]>(mockProducts);
+  const [products, setProducts] = useState<Product[]>([]);
   const [submitting, setSubmitting] = useState(false);
+  const [loading, setLoading] = useState(true);
   
   // Estado para sabores
-  const [flavors, setFlavors] = useState<Flavor[]>(mockFlavors);
+  const [flavors, setFlavors] = useState<Flavor[]>([]);
   const [editingFlavor, setEditingFlavor] = useState<Flavor | null>(null);
   const [deletingFlavor, setDeletingFlavor] = useState<Flavor | null>(null);
   const [isFlavorDeleteDialogOpen, setIsFlavorDeleteDialogOpen] = useState(false);
+  const [loadingFlavors, setLoadingFlavors] = useState(true);
+
+  // Cargar datos iniciales
+  useEffect(() => {
+    loadProducts();
+    loadFlavors();
+  }, []);
+
+  useEffect(() => {
+    loadProducts();
+  }, [searchTerm]);
+
+  const loadProducts = async () => {
+    try {
+      setLoading(true);
+      const data = await api.getProducts(searchTerm);
+      setProducts(data);
+    } catch (error) {
+      console.error('Error loading products:', error);
+      toast.error('Error al cargar los productos');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const loadFlavors = async () => {
+    try {
+      setLoadingFlavors(true);
+      const data = await api.getFlavors();
+      setFlavors(data);
+    } catch (error) {
+      console.error('Error loading flavors:', error);
+      toast.error('Error al cargar los sabores');
+    } finally {
+      setLoadingFlavors(false);
+    }
+  };
 
   const filteredProducts = products.filter(product => {
     const matchesSearch = product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -44,15 +87,6 @@ export default function Products() {
     const matchesCategory = selectedCategory === 'all' || product.category === selectedCategory;
     return matchesSearch && matchesCategory;
   });
-
-  const categories = [
-    { value: 'all', label: 'Todos' },
-    { value: 'cake', label: 'Tortas' },
-    { value: 'cupcake', label: 'Cupcakes' },
-    { value: 'dessert', label: 'Postres' },
-    { value: 'bread', label: 'Pan' },
-    { value: 'special', label: 'Especiales' },
-  ];
 
   const resetFilters = () => {
     setSearchTerm('');
@@ -75,13 +109,22 @@ export default function Products() {
     setIsDeleteDialogOpen(true);
   };
 
-  const handleConfirmDeleteProduct = () => {
+  const handleConfirmDeleteProduct = async () => {
     if (!deletingProduct) return;
 
-    const newProducts = products.filter(p => p.id !== deletingProduct.id);
-    setProducts(newProducts);
-    setIsDeleteDialogOpen(false);
-    toast.success(`Producto "${deletingProduct.name}" eliminado exitosamente`);
+    setSubmitting(true);
+    try {
+      await api.deleteProduct(deletingProduct.id);
+      await loadProducts(); // Recargar la lista
+      setIsDeleteDialogOpen(false);
+      toast.success(`Producto "${deletingProduct.name}" eliminado exitosamente`);
+    } catch (error) {
+      console.error('Error deleting product:', error);
+      toast.error('Error al eliminar el producto');
+    } finally {
+      setSubmitting(false);
+      setDeletingProduct(null);
+    }
   }
 
   const handleCancelDeleteProduct = () => {
@@ -102,48 +145,88 @@ export default function Products() {
     setStockProduct(null);
   };
 
-  const handleProductSaved = (savedProduct: Product) => {
-    let newProducts: Product[];
-    if (editingProduct) {
-      newProducts = products.map(p => p.id === savedProduct.id ? savedProduct : p);
-      toast.success(`Producto "${savedProduct.name}" actualizado exitosamente`);
-    } else {
-      newProducts = [...products, savedProduct];
-      toast.success(`Producto "${savedProduct.name}" creado exitosamente`);
-    }
-    setProducts(newProducts);
-    handleCloseProductDialog();
-  };
-
-  const handleStockAdded = (productId: string, quantity: number) => {
-    const newProducts = products.map(p => {
-      if (p.id === productId) {
-        return { ...p, stock: p.stock + quantity };
+  const handleProductSaved = async (savedProduct: Product) => {
+    try {
+      if (editingProduct) {
+        // Editar producto existente
+        const editData: EditProductData = {
+          id: savedProduct.id,
+          name: savedProduct.name,
+          description: savedProduct.description,
+          category: savedProduct.category,
+          location: savedProduct.location,
+          basePrice: savedProduct.basePrice,
+          pricePerPortion: savedProduct.pricePerPortion,
+          stock: savedProduct.stock,
+          minStock: savedProduct.minStock,
+          isActive: savedProduct.isActive,
+        };
+        await api.editProduct(editData);
+        toast.success(`Producto "${savedProduct.name}" actualizado exitosamente`);
+      } else {
+        // Crear nuevo producto
+        const createData: CreateProductData = {
+          name: savedProduct.name,
+          description: savedProduct.description,
+          category: savedProduct.category,
+          location: savedProduct.location,
+          basePrice: savedProduct.basePrice,
+          pricePerPortion: savedProduct.pricePerPortion,
+          stock: savedProduct.stock,
+          minStock: savedProduct.minStock,
+          isActive: savedProduct.isActive,
+        };
+        await api.createProduct(createData);
+        toast.success(`Producto "${savedProduct.name}" creado exitosamente`);
       }
-      return p;
-    });
-    setProducts(newProducts);
-    handleCloseStockDialog();
+      await loadProducts(); // Recargar la lista
+      handleCloseProductDialog();
+    } catch (error) {
+      console.error('Error saving product:', error);
+      toast.error('Error al guardar el producto');
+    }
   };
 
-  const handleAddFlavor = (newFlavor: Omit<Flavor, 'id'>) => {
-    const flavor: Flavor = {
-      ...newFlavor,
-      id: Date.now().toString(),
-    };
-    setFlavors([...flavors, flavor]);
-    toast.success(`Sabor "${flavor.name}" creado exitosamente`);
+  const handleStockAdded = async (productId: string, quantity: number) => {
+    try {
+      const stockData: AddStockData = { productId, quantity };
+      await api.addProductStock(stockData);
+      await loadProducts(); // Recargar la lista
+      handleCloseStockDialog();
+      toast.success(`Se agregaron ${quantity} unidades al stock`);
+    } catch (error) {
+      console.error('Error adding stock:', error);
+      toast.error('Error al agregar stock');
+    }
   };
 
-  const handleToggleFlavorStatus = (flavorId: string) => {
-    setFlavors(flavors.map(flavor => 
-      flavor.id === flavorId 
-        ? { ...flavor, isActive: !flavor.isActive }
-        : flavor
-    ));
-    const flavor = flavors.find(f => f.id === flavorId);
-    const newStatus = !flavor?.isActive;
-    toast.success(`Sabor "${flavor?.name}" ${newStatus ? 'activado' : 'desactivado'} exitosamente`);
+  const handleAddFlavor = async (newFlavor: Omit<Flavor, 'id'>) => {
+    try {
+      const createData: CreateFlavorData = {
+        name: newFlavor.name,
+        type: newFlavor.type,
+        isActive: newFlavor.isActive,
+      };
+      await api.createFlavor(createData);
+      await loadFlavors(); // Recargar la lista
+      toast.success(`Sabor "${newFlavor.name}" creado exitosamente`);
+    } catch (error) {
+      console.error('Error creating flavor:', error);
+      toast.error('Error al crear el sabor');
+    }
+  };
+
+  const handleToggleFlavorStatus = async (flavorId: string, currentStatus: boolean) => {
+    try {
+      const updatedFlavor = await api.toggleFlavorStatus(flavorId, !currentStatus);
+      setFlavors(flavors.map(flavor => 
+        flavor.id === flavorId ? updatedFlavor : flavor
+      ));
+      toast.success(`Sabor "${updatedFlavor.name}" ${updatedFlavor.isActive ? 'activado' : 'desactivado'} exitosamente`);
+    } catch (error) {
+      console.error('Error toggling flavor status:', error);
+      toast.error('Error al cambiar el estado del sabor');
+    }
   };
 
   const handleDeleteFlavor = (flavor: Flavor) => {
@@ -151,13 +234,19 @@ export default function Products() {
     setIsFlavorDeleteDialogOpen(true);
   };
 
-  const handleConfirmDeleteFlavor = () => {
+  const handleConfirmDeleteFlavor = async () => {
     if (!deletingFlavor) return;
     
-    setFlavors(flavors.filter(f => f.id !== deletingFlavor.id));
-    setIsFlavorDeleteDialogOpen(false);
-    toast.success(`Sabor "${deletingFlavor.name}" eliminado exitosamente`);
-    setDeletingFlavor(null);
+    try {
+      await api.deleteFlavor(deletingFlavor.id);
+      await loadFlavors(); // Recargar la lista
+      setIsFlavorDeleteDialogOpen(false);
+      toast.success(`Sabor "${deletingFlavor.name}" eliminado exitosamente`);
+      setDeletingFlavor(null);
+    } catch (error) {
+      console.error('Error deleting flavor:', error);
+      toast.error('Error al eliminar el sabor');
+    }
   };
 
   const handleCancelDeleteFlavor = () => {
@@ -170,10 +259,22 @@ export default function Products() {
     setIsFlavorDialogOpen(true);
   };
 
-  const handleUpdateFlavor = (updatedFlavor: Flavor) => {
-    setFlavors(flavors.map(f => f.id === updatedFlavor.id ? updatedFlavor : f));
-    toast.success(`Sabor "${updatedFlavor.name}" actualizado exitosamente`);
-    setEditingFlavor(null);
+  const handleUpdateFlavor = async (updatedFlavor: Flavor) => {
+    try {
+      const editData: EditFlavorData = {
+        id: updatedFlavor.id,
+        name: updatedFlavor.name,
+        type: updatedFlavor.type,
+        isActive: updatedFlavor.isActive,
+      };
+      await api.editFlavor(editData);
+      await loadFlavors(); // Recargar la lista
+      toast.success(`Sabor "${updatedFlavor.name}" actualizado exitosamente`);
+      setEditingFlavor(null);
+    } catch (error) {
+      console.error('Error updating flavor:', error);
+      toast.error('Error al actualizar el sabor');
+    }
   };
 
   return (
@@ -373,6 +474,7 @@ export default function Products() {
                         <SelectValue placeholder="Categoría" />
                       </SelectTrigger>
                       <SelectContent>
+                        <SelectItem key='all' value='all'>Todos</SelectItem>
                         {categories.map(cat => (
                           <SelectItem key={cat.value} value={cat.value}>{cat.label}</SelectItem>
                         ))}
@@ -408,153 +510,81 @@ export default function Products() {
                 </div>
               </CardContent>
             </Card>
-
-            {isMobile ? (
-              <div className="space-y-3">
-                {filteredProducts.length === 0 ? (
-                  <Card>
-                    <CardContent className="p-8 text-center">
-                      <p className="text-muted-foreground">No se encontraron productos</p>
-                    </CardContent>
-                  </Card>
-                ) : (
-                  filteredProducts.map(product => (
-                    <MobileCard key={product.id} className="active:scale-[0.98] transition-transform">
-                      <MobileCardHeader className="px-3 py-2">
-                        <div className="flex items-center gap-3">
-                          <div className="h-10 w-10 bg-muted rounded-lg flex items-center justify-center shrink-0">
-                            <Cake className="h-5 w-5 text-muted-foreground" />
-                          </div>
-                          <div className="min-w-0 flex-1">
-                            <p className="font-medium text-sm truncate">{product.name}</p>
-                            <p className="text-xs text-muted-foreground truncate">{product.description}</p>
-                          </div>
-                        </div>
-                      </MobileCardHeader>
-                      
-                      <div className="px-3 pb-3 space-y-2">
-                        <div className="grid grid-cols-2 gap-2 text-sm">
-                          <div>
-                            <p className="text-xs text-muted-foreground">Categoría</p>
-                            <Badge variant="outline" className="text-xs">
-                              {categories.find(c => c.value === product.category)?.label}
-                            </Badge>
-                          </div>
-                          <div>
-                            <p className="text-xs text-muted-foreground">Precio</p>
-                            <p className="font-medium">Bs. {product.basePrice}</p>
-                          </div>
-                          <div>
-                            <p className="text-xs text-muted-foreground">Stock</p>
-                            <p className={product.stock <= product.minStock ? 'text-destructive font-medium' : ''}>
-                              {product.stock} / {product.minStock}
-                            </p>
-                          </div>
-                          <div>
-                            <p className="text-xs text-muted-foreground">Ubicación</p>
-                            <Badge variant={product.location === 'store' ? 'default' : 'secondary'} className="text-xs">
-                              {product.location === 'store' ? 'Tienda' : 'Producción'}
-                            </Badge>
-                          </div>
-                        </div>
-
-                        <div className="flex items-center justify-between pt-2 border-t">
-                          <Badge variant={product.isActive ? 'default' : 'secondary'}>
-                            {product.isActive ? 'Activo' : 'Inactivo'}
-                          </Badge>
-                          <div className="flex gap-1">
-                            <Button 
-                              variant="ghost" 
-                              size="icon" 
-                              className="h-8 w-8"
-                              onClick={() => handleAddStock(product)}
-                            >
-                              <PlusCircle className="h-4 w-4" />
-                            </Button>
-                            <Button 
-                              variant="ghost" 
-                              size="icon" 
-                              className="h-8 w-8"
-                              onClick={() => handleEditProduct(product)}
-                            >
-                              <Edit2 className="h-4 w-4" />
-                            </Button>
-                            <Button 
-                              variant="ghost" 
-                              size="icon" 
-                              className="h-8 w-8"
-                              onClick={() => handleDeleteProduct(product)}
-                            >
-                              <Trash2 className="h-4 w-4 text-destructive" />
-                            </Button>
-                          </div>
-                        </div>
-                      </div>
-                    </MobileCard>
-                  ))
-                )}
+            
+            {loading && (
+              <div className="flex items-center justify-center py-8">
+                <Loader2 className="h-8 w-8 animate-spin text-primary" />
               </div>
-            ) : (
-              <Card className="overflow-hidden">
-                <div className="overflow-x-auto">
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead className="whitespace-nowrap">Producto</TableHead>
-                        <TableHead className="whitespace-nowrap">Categoría</TableHead>
-                        <TableHead className="whitespace-nowrap">Precio Base</TableHead>
-                        <TableHead className="whitespace-nowrap">Ubicación</TableHead>
-                        <TableHead className="whitespace-nowrap">Stock</TableHead>
-                        <TableHead className="text-right whitespace-nowrap">Acciones</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {filteredProducts.length === 0 ? (
-                        <TableRow>
-                          <TableCell colSpan={8} className="text-center py-8 text-muted-foreground">
-                            No se encontraron productos
-                          </TableCell>
-                        </TableRow>
-                      ) : (
-                        filteredProducts.map(product => (
-                          <TableRow key={product.id}>
-                            <TableCell>
-                              <div className="flex items-center gap-3 min-w-[200px]">
-                                <div className="h-10 w-10 bg-muted rounded-lg flex items-center justify-center shrink-0">
-                                  <Cake className="h-5 w-5 text-muted-foreground" />
-                                </div>
-                                <div className="min-w-0">
-                                  <p className="font-medium truncate">{product.name}</p>
-                                  <p className="text-sm text-muted-foreground truncate max-w-xs">
-                                    {product.description}
-                                  </p>
-                                </div>
-                              </div>
-                            </TableCell>
-                            <TableCell>
-                              <Badge variant="outline" className="whitespace-nowrap">
+            )}
+            
+            {!loading && products.length === 0 && (
+              <Card>
+                <CardContent className="p-8 text-center text-muted-foreground">
+                  No se encontraron usuarios
+                </CardContent>
+              </Card>
+            )}
+    
+            {!loading && products.length > 0 && (
+              isMobile ? (
+                <div className="space-y-3">
+                  {filteredProducts.length === 0 ? (
+                    <Card>
+                      <CardContent className="p-8 text-center">
+                        <p className="text-muted-foreground">No se encontraron productos</p>
+                      </CardContent>
+                    </Card>
+                  ) : (
+                    filteredProducts.map(product => (
+                      <MobileCard key={product.id} className="active:scale-[0.98] transition-transform">
+                        <MobileCardHeader className="px-3 py-2">
+                          <div className="flex items-center gap-3">
+                            <div className="h-10 w-10 bg-muted rounded-lg flex items-center justify-center shrink-0">
+                              <Cake className="h-5 w-5 text-muted-foreground" />
+                            </div>
+                            <div className="min-w-0 flex-1">
+                              <p className="font-medium text-sm truncate">{product.name}</p>
+                              <p className="text-xs text-muted-foreground truncate">{product.description}</p>
+                            </div>
+                          </div>
+                        </MobileCardHeader>
+                        
+                        <div className="px-3 pb-3 space-y-2">
+                          <div className="grid grid-cols-2 gap-2 text-sm">
+                            <div>
+                              <p className="text-xs text-muted-foreground">Categoría</p>
+                              <Badge variant="outline" className="text-xs">
                                 {categories.find(c => c.value === product.category)?.label}
                               </Badge>
-                            </TableCell>
-                            <TableCell className="font-medium whitespace-nowrap">Bs. {product.basePrice}</TableCell>
-                            <TableCell>
-                              <Badge variant={product.location === 'store' ? 'default' : 'secondary'} className="whitespace-nowrap">
+                            </div>
+                            <div>
+                              <p className="text-xs text-muted-foreground">Precio</p>
+                              <p className="font-medium">Bs. {product.basePrice}</p>
+                            </div>
+                            <div>
+                              <p className="text-xs text-muted-foreground">Stock</p>
+                              <p className={product.stock <= product.minStock ? 'text-destructive font-medium' : ''}>
+                                {product.stock} / {product.minStock}
+                              </p>
+                            </div>
+                            <div>
+                              <p className="text-xs text-muted-foreground">Ubicación</p>
+                              <Badge variant={product.location === 'store' ? 'default' : 'secondary'} className="text-xs">
                                 {product.location === 'store' ? 'Tienda' : 'Producción'}
                               </Badge>
-                            </TableCell>
-                            <TableCell>
-                              <span className={product.stock <= product.minStock ? 'text-destructive font-medium' : ''}>
-                                {product.stock}
-                              </span>
-                              <span className="text-muted-foreground"> / {product.minStock}</span>
-                            </TableCell>
-                            <TableCell className="text-right whitespace-nowrap">
+                            </div>
+                          </div>
+  
+                          <div className="flex items-center justify-between pt-2 border-t">
+                            <Badge variant={product.isActive ? 'default' : 'secondary'}>
+                              {product.isActive ? 'Activo' : 'Inactivo'}
+                            </Badge>
+                            <div className="flex gap-1">
                               <Button 
                                 variant="ghost" 
                                 size="icon" 
                                 className="h-8 w-8"
                                 onClick={() => handleAddStock(product)}
-                                title="Agregar stock"
                               >
                                 <PlusCircle className="h-4 w-4" />
                               </Button>
@@ -563,7 +593,6 @@ export default function Products() {
                                 size="icon" 
                                 className="h-8 w-8"
                                 onClick={() => handleEditProduct(product)}
-                                title="Editar"
                               >
                                 <Edit2 className="h-4 w-4" />
                               </Button>
@@ -572,121 +601,216 @@ export default function Products() {
                                 size="icon" 
                                 className="h-8 w-8"
                                 onClick={() => handleDeleteProduct(product)}
-                                title="Eliminar"
                               >
                                 <Trash2 className="h-4 w-4 text-destructive" />
                               </Button>
+                            </div>
+                          </div>
+                        </div>
+                      </MobileCard>
+                    ))
+                  )}
+                </div>
+              ) : (
+                <Card className="overflow-hidden">
+                  <div className="overflow-x-auto">
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead className="whitespace-nowrap">Producto</TableHead>
+                          <TableHead className="whitespace-nowrap">Categoría</TableHead>
+                          <TableHead className="whitespace-nowrap">Precio Base</TableHead>
+                          <TableHead className="whitespace-nowrap">Ubicación</TableHead>
+                          <TableHead className="whitespace-nowrap">Stock</TableHead>
+                          <TableHead className="text-right whitespace-nowrap">Acciones</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {filteredProducts.length === 0 ? (
+                          <TableRow>
+                            <TableCell colSpan={8} className="text-center py-8 text-muted-foreground">
+                              No se encontraron productos
                             </TableCell>
                           </TableRow>
-                        ))
-                      )}
-                    </TableBody>
-                  </Table>
-                </div>
-              </Card>
+                        ) : (
+                          filteredProducts.map(product => (
+                            <TableRow key={product.id}>
+                              <TableCell>
+                                <div className="flex items-center gap-3 min-w-[200px]">
+                                  <div className="h-10 w-10 bg-muted rounded-lg flex items-center justify-center shrink-0">
+                                    <Cake className="h-5 w-5 text-muted-foreground" />
+                                  </div>
+                                  <div className="min-w-0">
+                                    <p className="font-medium truncate">{product.name}</p>
+                                    <p className="text-sm text-muted-foreground truncate max-w-xs">
+                                      {product.description}
+                                    </p>
+                                  </div>
+                                </div>
+                              </TableCell>
+                              <TableCell>
+                                <Badge variant="outline" className="whitespace-nowrap">
+                                  {categories.find(c => c.value === product.category)?.label}
+                                </Badge>
+                              </TableCell>
+                              <TableCell className="font-medium whitespace-nowrap">Bs. {product.basePrice}</TableCell>
+                              <TableCell>
+                                <Badge variant={product.location === 'store' ? 'default' : 'secondary'} className="whitespace-nowrap">
+                                  {product.location === 'store' ? 'Tienda' : 'Producción'}
+                                </Badge>
+                              </TableCell>
+                              <TableCell>
+                                <span className={product.stock <= product.minStock ? 'text-destructive font-medium' : ''}>
+                                  {product.stock}
+                                </span>
+                                <span className="text-muted-foreground"> / {product.minStock}</span>
+                              </TableCell>
+                              <TableCell className="text-right whitespace-nowrap">
+                                <Button 
+                                  variant="ghost" 
+                                  size="icon" 
+                                  className="h-8 w-8"
+                                  onClick={() => handleAddStock(product)}
+                                  title="Agregar stock"
+                                >
+                                  <PlusCircle className="h-4 w-4" />
+                                </Button>
+                                <Button 
+                                  variant="ghost" 
+                                  size="icon" 
+                                  className="h-8 w-8"
+                                  onClick={() => handleEditProduct(product)}
+                                  title="Editar"
+                                >
+                                  <Edit2 className="h-4 w-4" />
+                                </Button>
+                                <Button 
+                                  variant="ghost" 
+                                  size="icon" 
+                                  className="h-8 w-8"
+                                  onClick={() => handleDeleteProduct(product)}
+                                  title="Eliminar"
+                                >
+                                  <Trash2 className="h-4 w-4 text-destructive" />
+                                </Button>
+                              </TableCell>
+                            </TableRow>
+                          ))
+                        )}
+                      </TableBody>
+                    </Table>
+                  </div>
+                </Card>
+              )
             )}
           </TabsContent>
 
           <TabsContent value="flavors" className="space-y-4 mt-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 px-4 sm:px-0">
-              {/* Cake Flavors */}
-              <Card>
-                <CardHeader className="px-4 py-3 sm:px-6">
-                  <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
-                    <Cake className="h-4 w-4 sm:h-5 sm:w-5" />
-                    Sabores de Torta
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="px-4 pb-4 sm:px-6">
-                  <div className="space-y-2">
-                    {flavors.filter(f => f.type === 'cake').map(flavor => (
-                      <div key={flavor.id} className="flex items-center justify-between p-2 sm:p-3 bg-muted/50 rounded-lg">
-                        <span className={`text-sm sm:text-base font-medium ${!flavor.isActive ? 'text-muted-foreground line-through' : ''}`}>
-                          {flavor.name}
-                        </span>
-                        <div className="flex items-center gap-1 sm:gap-2">
-                          <Switch 
-                            checked={flavor.isActive} 
-                            onCheckedChange={() => handleToggleFlavorStatus(flavor.id)}
-                            className="scale-75 sm:scale-100" 
-                          />
-                          <Button 
-                            variant="ghost" 
-                            size="icon" 
-                            className="h-7 w-7 sm:h-8 sm:w-8"
-                            onClick={() => handleEditFlavor(flavor)}
-                          >
-                            <Edit2 className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
-                          </Button>
-                          <Button 
-                            variant="ghost" 
-                            size="icon" 
-                            className="h-7 w-7 sm:h-8 sm:w-8"
-                            onClick={() => handleDeleteFlavor(flavor)}
-                          >
-                            <Trash2 className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-destructive" />
-                          </Button>
+            {loadingFlavors ? (
+              <div className="flex justify-center py-8">
+                <Loader2 className="h-6 w-6 animate-spin text-primary" />
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 px-4 sm:px-0">
+                {/* Cake Flavors */}
+                <Card>
+                  <CardHeader className="px-4 py-3 sm:px-6">
+                    <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
+                      <Cake className="h-4 w-4 sm:h-5 sm:w-5" />
+                      Sabores de Torta
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="px-4 pb-4 sm:px-6">
+                    <div className="space-y-2">
+                      {flavors.filter(f => f.type === 'cake').map(flavor => (
+                        <div key={flavor.id} className="flex items-center justify-between p-2 sm:p-3 bg-muted/50 rounded-lg">
+                          <span className={`text-sm sm:text-base font-medium ${!flavor.isActive ? 'text-muted-foreground line-through' : ''}`}>
+                            {flavor.name}
+                          </span>
+                          <div className="flex items-center gap-1 sm:gap-2">
+                            <Switch 
+                              checked={flavor.isActive} 
+                              onCheckedChange={() => handleToggleFlavorStatus(flavor.id, flavor.isActive)}
+                              className="scale-75 sm:scale-100" 
+                            />
+                            <Button 
+                              variant="ghost" 
+                              size="icon" 
+                              className="h-7 w-7 sm:h-8 sm:w-8"
+                              onClick={() => handleEditFlavor(flavor)}
+                            >
+                              <Edit2 className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                            </Button>
+                            <Button 
+                              variant="ghost" 
+                              size="icon" 
+                              className="h-7 w-7 sm:h-8 sm:w-8"
+                              onClick={() => handleDeleteFlavor(flavor)}
+                            >
+                              <Trash2 className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-destructive" />
+                            </Button>
+                          </div>
                         </div>
-                      </div>
-                    ))}
-                    {flavors.filter(f => f.type === 'cake').length === 0 && (
-                      <div className="text-center py-4 text-muted-foreground text-sm">
-                        No hay sabores de torta registrados
-                      </div>
-                    )}
-                  </div>
-                </CardContent>
-              </Card>
+                      ))}
+                      {flavors.filter(f => f.type === 'cake').length === 0 && (
+                        <div className="text-center py-4 text-muted-foreground text-sm">
+                          No hay sabores de torta registrados
+                        </div>
+                      )}
+                    </div>
+                  </CardContent>
+                </Card>
 
-              {/* Filling Flavors */}
-              <Card>
-                <CardHeader className="px-4 py-3 sm:px-6">
-                  <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
-                    <Package className="h-4 w-4 sm:h-5 sm:w-5" />
-                    Sabores de Relleno
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="px-4 pb-4 sm:px-6">
-                  <div className="space-y-2">
-                    {flavors.filter(f => f.type === 'filling').map(flavor => (
-                      <div key={flavor.id} className="flex items-center justify-between p-2 sm:p-3 bg-muted/50 rounded-lg">
-                        <span className={`text-sm sm:text-base font-medium ${!flavor.isActive ? 'text-muted-foreground line-through' : ''}`}>
-                          {flavor.name}
-                        </span>
-                        <div className="flex items-center gap-1 sm:gap-2">
-                          <Switch 
-                            checked={flavor.isActive} 
-                            onCheckedChange={() => handleToggleFlavorStatus(flavor.id)}
-                            className="scale-75 sm:scale-100" 
-                          />
-                          <Button 
-                            variant="ghost" 
-                            size="icon" 
-                            className="h-7 w-7 sm:h-8 sm:w-8"
-                            onClick={() => handleEditFlavor(flavor)}
-                          >
-                            <Edit2 className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
-                          </Button>
-                          <Button 
-                            variant="ghost" 
-                            size="icon" 
-                            className="h-7 w-7 sm:h-8 sm:w-8"
-                            onClick={() => handleDeleteFlavor(flavor)}
-                          >
-                            <Trash2 className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-destructive" />
-                          </Button>
+                {/* Filling Flavors */}
+                <Card>
+                  <CardHeader className="px-4 py-3 sm:px-6">
+                    <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
+                      <Package className="h-4 w-4 sm:h-5 sm:w-5" />
+                      Sabores de Relleno
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="px-4 pb-4 sm:px-6">
+                    <div className="space-y-2">
+                      {flavors.filter(f => f.type === 'filling').map(flavor => (
+                        <div key={flavor.id} className="flex items-center justify-between p-2 sm:p-3 bg-muted/50 rounded-lg">
+                          <span className={`text-sm sm:text-base font-medium ${!flavor.isActive ? 'text-muted-foreground line-through' : ''}`}>
+                            {flavor.name}
+                          </span>
+                          <div className="flex items-center gap-1 sm:gap-2">
+                            <Switch 
+                              checked={flavor.isActive} 
+                              onCheckedChange={() => handleToggleFlavorStatus(flavor.id, flavor.isActive)}
+                              className="scale-75 sm:scale-100" 
+                            />
+                            <Button 
+                              variant="ghost" 
+                              size="icon" 
+                              className="h-7 w-7 sm:h-8 sm:w-8"
+                              onClick={() => handleEditFlavor(flavor)}
+                            >
+                              <Edit2 className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                            </Button>
+                            <Button 
+                              variant="ghost" 
+                              size="icon" 
+                              className="h-7 w-7 sm:h-8 sm:w-8"
+                              onClick={() => handleDeleteFlavor(flavor)}
+                            >
+                              <Trash2 className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-destructive" />
+                            </Button>
+                          </div>
                         </div>
-                      </div>
-                    ))}
-                    {flavors.filter(f => f.type === 'filling').length === 0 && (
-                      <div className="text-center py-4 text-muted-foreground text-sm">
-                        No hay sabores de relleno registrados
-                      </div>
-                    )}
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
+                      ))}
+                      {flavors.filter(f => f.type === 'filling').length === 0 && (
+                        <div className="text-center py-4 text-muted-foreground text-sm">
+                          No hay sabores de relleno registrados
+                        </div>
+                      )}
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+            )}
           </TabsContent>
         </Tabs>
       </div>
@@ -694,22 +818,33 @@ export default function Products() {
   );
 }
 
+// Los componentes AddStockForm, ProductForm y FlavorForm se mantienen igual
+// (incluir los mismos componentes que estaban en el archivo original)
 function AddStockForm({ product, onClose, onAddStock }: { 
   product: Product; 
   onClose: () => void;
   onAddStock: (productId: string, quantity: number) => void;
 }) {
   const [quantity, setQuantity] = useState<number>(1);
+  const [submitting, setSubmitting] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (quantity <= 0) {
       toast.error('La cantidad debe ser mayor a 0');
       return;
     }
-    onAddStock(product.id, quantity);
-    toast.success(`Se agregaron ${quantity} unidades al stock de "${product.name}"`);
-    onClose();
+    setSubmitting(true);
+    try {
+      await onAddStock(product.id, quantity);
+      toast.success(`Se agregaron ${quantity} unidades al stock de "${product.name}"`);
+      onClose();
+    } catch (error) {
+      console.error('Error adding stock:', error);
+      toast.error('Error al agregar stock');
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
@@ -738,10 +873,11 @@ function AddStockForm({ product, onClose, onAddStock }: {
       </div>
 
       <div className="flex flex-col sm:flex-row justify-end gap-2 sm:gap-3 pt-2">
-        <Button type="button" variant="outline" onClick={onClose} className="w-full sm:w-auto order-2 sm:order-1">
+        <Button type="button" variant="outline" onClick={onClose} className="w-full sm:w-auto order-2 sm:order-1" disabled={submitting}>
           Cancelar
         </Button>
-        <Button type="submit" className="w-full sm:w-auto order-1 sm:order-2">
+        <Button type="submit" className="w-full sm:w-auto order-1 sm:order-2" disabled={submitting}>
+          {submitting && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
           Agregar Stock
         </Button>
       </div>
@@ -755,6 +891,7 @@ function ProductForm({ onClose, onSave, initialProduct }: {
   initialProduct?: Product | null;
 }) {
   const isEditing = !!initialProduct;
+  const [submitting, setSubmitting] = useState(false);
   
   const [formData, setFormData] = useState({
     name: initialProduct?.name || '',
@@ -772,16 +909,19 @@ function ProductForm({ onClose, onSave, initialProduct }: {
     setFormData(prev => ({ ...prev, [field]: value }));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setSubmitting(true);
     
     if (!formData.name.trim()) {
       toast.error('El nombre del producto es requerido');
+      setSubmitting(false);
       return;
     }
     
     if (formData.basePrice <= 0) {
       toast.error('El precio base debe ser mayor a 0');
+      setSubmitting(false);
       return;
     }
 
@@ -799,7 +939,8 @@ function ProductForm({ onClose, onSave, initialProduct }: {
       minStock: formData.minStock,
     };
     
-    onSave(product);
+    await onSave(product);
+    setSubmitting(false);
   };
 
   return (
@@ -834,11 +975,9 @@ function ProductForm({ onClose, onSave, initialProduct }: {
               <SelectValue placeholder="Seleccionar" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="cake">Torta</SelectItem>
-              <SelectItem value="cupcake">Cupcake</SelectItem>
-              <SelectItem value="dessert">Postre</SelectItem>
-              <SelectItem value="bread">Pan</SelectItem>
-              <SelectItem value="special">Especial</SelectItem>
+              {categories.map(cat => (
+                <SelectItem key={cat.value} value={cat.value}>{cat.label}</SelectItem>
+              ))}
             </SelectContent>
           </Select>
         </div>
@@ -914,10 +1053,11 @@ function ProductForm({ onClose, onSave, initialProduct }: {
       </div>
       
       <div className="flex flex-col sm:flex-row justify-end gap-2 sm:gap-3 pt-2">
-        <Button type="button" variant="outline" onClick={onClose} className="w-full sm:w-auto order-2 sm:order-1">
+        <Button type="button" variant="outline" onClick={onClose} className="w-full sm:w-auto order-2 sm:order-1" disabled={submitting}>
           Cancelar
         </Button>
-        <Button type="submit" className="w-full sm:w-auto order-1 sm:order-2">
+        <Button type="submit" className="w-full sm:w-auto order-1 sm:order-2" disabled={submitting}>
+          {submitting && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
           {isEditing ? 'Actualizar Producto' : 'Crear Producto'}
         </Button>
       </div>
@@ -931,15 +1071,18 @@ function FlavorForm({ onClose, onSave, initialFlavor }: {
   initialFlavor?: Flavor | null;
 }) {
   const isEditing = !!initialFlavor;
+  const [submitting, setSubmitting] = useState(false);
   const [name, setName] = useState(initialFlavor?.name || '');
   const [type, setType] = useState<'cake' | 'filling'>(initialFlavor?.type || 'cake');
   const [isActive, setIsActive] = useState(initialFlavor?.isActive ?? true);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setSubmitting(true);
     
     if (!name.trim()) {
       toast.error('El nombre del sabor es requerido');
+      setSubmitting(false);
       return;
     }
 
@@ -950,10 +1093,11 @@ function FlavorForm({ onClose, onSave, initialFlavor }: {
     };
 
     if (isEditing && initialFlavor) {
-      onSave({ ...flavorData, id: initialFlavor.id });
+      await onSave({ ...flavorData, id: initialFlavor.id });
     } else {
-      onSave(flavorData as any);
+      await onSave(flavorData as any);
     }
+    setSubmitting(false);
     onClose();
   };
 
@@ -994,10 +1138,11 @@ function FlavorForm({ onClose, onSave, initialFlavor }: {
       </div>
       
       <div className="flex flex-col sm:flex-row justify-end gap-2 sm:gap-3 pt-2">
-        <Button type="button" variant="outline" onClick={onClose} className="w-full sm:w-auto order-2 sm:order-1">
+        <Button type="button" variant="outline" onClick={onClose} className="w-full sm:w-auto order-2 sm:order-1" disabled={submitting}>
           Cancelar
         </Button>
-        <Button type="submit" className="w-full sm:w-auto order-1 sm:order-2">
+        <Button type="submit" className="w-full sm:w-auto order-1 sm:order-2" disabled={submitting}>
+          {submitting && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
           {isEditing ? 'Actualizar Sabor' : 'Crear Sabor'}
         </Button>
       </div>

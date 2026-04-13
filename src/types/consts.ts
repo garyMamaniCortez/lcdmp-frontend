@@ -28,3 +28,11 @@ export const roleColors: Record<UserRole, string> = {
   assembler: 'bg-cyan-100 text-cyan-800',
   delivery: 'bg-green-100 text-green-800',
 };
+
+export const categories = [
+    { value: 'cake', label: 'Tortas' },
+    { value: 'cupcake', label: 'Cupcakes' },
+    { value: 'dessert', label: 'Postres' },
+    { value: 'bread', label: 'Pan' },
+    { value: 'special', label: 'Especiales' },
+  ];

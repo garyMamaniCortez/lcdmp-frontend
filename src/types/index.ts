@@ -107,6 +107,37 @@ export interface Flavor {
   isActive: boolean;
 }
 
+export interface CreateProductData {
+  name: string;
+  description: string;
+  category: 'cake' | 'cupcake' | 'dessert' | 'bread' | 'special';
+  location: 'production' | 'store';
+  basePrice: number;
+  pricePerPortion: number;
+  stock: number;
+  minStock: number;
+  isActive: boolean;
+}
+
+export interface EditProductData extends Partial<CreateProductData> {
+  id: string;
+}
+
+export interface AddStockData {
+  productId: string;
+  quantity: number;
+}
+
+export interface CreateFlavorData {
+  name: string;
+  type: 'cake' | 'filling';
+  isActive: boolean;
+}
+
+export interface EditFlavorData extends Partial<CreateFlavorData> {
+  id: string;
+}
+
 // Menu Types
 export interface SpecialMenu {
   id: string;
