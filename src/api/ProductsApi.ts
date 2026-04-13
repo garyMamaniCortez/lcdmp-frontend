@@ -1,5 +1,5 @@
-// src/api/ProductsApi.ts
 import { Product, Flavor, CreateProductData, EditProductData, AddStockData, CreateFlavorData, EditFlavorData } from '@/types';
+import api from '@/api/api';
 import { mockProducts, mockFlavors } from '@/data/mockData';
 
 export interface IProductsApi {
@@ -158,4 +158,160 @@ export class MockProductsApi implements IProductsApi {
   }
 }
 
-export const defaultProductsApi = new MockProductsApi();
+export class ProductsApi implements IProductsApi {
+  async getProducts(searchTerm: string = ''): Promise<Product[]> {
+    try {
+      const response = await api.get('/products', {
+        params: { search: searchTerm || undefined }
+      });
+
+      if (!response.data.success) {
+        throw new Error(response.data.message || 'Error al obtener productos');
+      }
+
+      return response.data.data as Product[];
+    } catch (error: any) {
+      console.error('Error en getProducts:', error);
+      throw new Error(error.response?.data?.message || error.message || 'Error de conexión');
+    }
+  }
+
+  async createProduct(product: CreateProductData): Promise<Product> {
+    try {
+      const response = await api.post('/products', product);
+
+      if (!response.data.success) {
+        throw new Error(response.data.message || 'Error al crear producto');
+      }
+
+      return response.data.data as Product;
+    } catch (error: any) {
+      console.error('Error en createProduct:', error);
+      throw new Error(error.response?.data?.message || error.message || 'Error de conexión');
+    }
+  }
+
+  async editProduct(product: EditProductData): Promise<Product> {
+    try {
+      const { id, ...updateData } = product;
+      const response = await api.put(`/products/${id}`, updateData);
+
+      if (!response.data.success) {
+        throw new Error(response.data.message || 'Error al editar producto');
+      }
+
+      return response.data.data as Product;
+    } catch (error: any) {
+      console.error('Error en editProduct:', error);
+      throw new Error(error.response?.data?.message || error.message || 'Error de conexión');
+    }
+  }
+
+  async deleteProduct(productId: string): Promise<void> {
+    try {
+      const response = await api.delete(`/products/${productId}`);
+
+      if (!response.data.success) {
+        throw new Error(response.data.message || 'Error al eliminar producto');
+      }
+    } catch (error: any) {
+      console.error('Error en deleteProduct:', error);
+      throw new Error(error.response?.data?.message || error.message || 'Error de conexión');
+    }
+  }
+
+  async addProductStock(data: AddStockData): Promise<Product> {
+    try {
+      const response = await api.post(`/products/${data.productId}/stock`, {
+        quantity: data.quantity
+      });
+
+      if (!response.data.success) {
+        throw new Error(response.data.message || 'Error al agregar stock');
+      }
+
+      return response.data.data as Product;
+    } catch (error: any) {
+      console.error('Error en addProductStock:', error);
+      throw new Error(error.response?.data?.message || error.message || 'Error de conexión');
+    }
+  }
+
+  async getFlavors(): Promise<Flavor[]> {
+    try {
+      const response = await api.get('/products/flavors');
+
+      if (!response.data.success) {
+        throw new Error(response.data.message || 'Error al obtener sabores');
+      }
+
+      return response.data.data as Flavor[];
+    } catch (error: any) {
+      console.error('Error en getFlavors:', error);
+      throw new Error(error.response?.data?.message || error.message || 'Error de conexión');
+    }
+  }
+
+  async createFlavor(flavor: CreateFlavorData): Promise<Flavor> {
+    try {
+      const response = await api.post('/products/flavors', flavor);
+
+      if (!response.data.success) {
+        throw new Error(response.data.message || 'Error al crear sabor');
+      }
+
+      return response.data.data as Flavor;
+    } catch (error: any) {
+      console.error('Error en createFlavor:', error);
+      throw new Error(error.response?.data?.message || error.message || 'Error de conexión');
+    }
+  }
+
+  async editFlavor(flavor: EditFlavorData): Promise<Flavor> {
+    try {
+      const { id, ...updateData } = flavor;
+      const response = await api.put(`/products/flavors/${id}`, updateData);
+
+      if (!response.data.success) {
+        throw new Error(response.data.message || 'Error al editar sabor');
+      }
+
+      return response.data.data as Flavor;
+    } catch (error: any) {
+      console.error('Error en editFlavor:', error);
+      throw new Error(error.response?.data?.message || error.message || 'Error de conexión');
+    }
+  }
+
+  async toggleFlavorStatus(flavorId: string, isActive: boolean): Promise<Flavor> {
+    try {
+      const response = await api.patch(`/products/flavors/${flavorId}/toggle`, {
+        isActive
+      });
+
+      if (!response.data.success) {
+        throw new Error(response.data.message || 'Error al cambiar estado del sabor');
+      }
+
+      return response.data.data as Flavor;
+    } catch (error: any) {
+      console.error('Error en toggleFlavorStatus:', error);
+      throw new Error(error.response?.data?.message || error.message || 'Error de conexión');
+    }
+  }
+
+  async deleteFlavor(flavorId: string): Promise<void> {
+    try {
+      const response = await api.delete(`/products/flavors/${flavorId}`);
+
+      if (!response.data.success) {
+        throw new Error(response.data.message || 'Error al eliminar sabor');
+      }
+    } catch (error: any) {
+      console.error('Error en deleteFlavor:', error);
+      throw new Error(error.response?.data?.message || error.message || 'Error de conexión');
+    }
+  }
+}
+
+export const defaultProductsApi = new ProductsApi();

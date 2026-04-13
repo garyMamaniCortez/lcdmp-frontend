@@ -156,7 +156,7 @@ export default function Products({ api = defaultProductsApi }: ProductsProps) {
           category: savedProduct.category,
           location: savedProduct.location,
           basePrice: savedProduct.basePrice,
-          pricePerPortion: savedProduct.pricePerPortion,
+          pricePerPortion: Number(savedProduct.pricePerPortion),
           stock: savedProduct.stock,
           minStock: savedProduct.minStock,
           isActive: savedProduct.isActive,
