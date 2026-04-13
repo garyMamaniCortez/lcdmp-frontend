@@ -6,15 +6,16 @@ import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
 import { MobileCard, MobileCardHeader, MobileCardRow, useIsMobile } from '@/components/ui/responsive-table';
-import { Plus, Search, Edit2, Trash2, Cake, Package, Filter, X } from 'lucide-react';
+import { Plus, Search, Edit2, Trash2, Cake, Package, Filter, X, PlusCircle, Loader2 } from 'lucide-react';
 import { mockProducts, mockFlavors } from '@/data/mockData';
 import { toast } from 'sonner';
+import { Product } from '@/types';
 
 export default function Products() {
   const isMobile = useIsMobile();
@@ -23,8 +24,14 @@ export default function Products() {
   const [isProductDialogOpen, setIsProductDialogOpen] = useState(false);
   const [isFlavorDialogOpen, setIsFlavorDialogOpen] = useState(false);
   const [showFilters, setShowFilters] = useState(false);
+  const [editingProduct, setEditingProduct] = useState<Product | null>(null);
+  const [deletingProduct, setDeletingProduct] = useState<Product | null>(null);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [stockProduct, setStockProduct] = useState<Product | null>(null);
+  const [products, setProducts] = useState<Product[]>(mockProducts);
+  const [submitting, setSubmitting] = useState(false);
 
-  const filteredProducts = mockProducts.filter(product => {
+  const filteredProducts = products.filter(product => {
     const matchesSearch = product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       product.description?.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesCategory = selectedCategory === 'all' || product.category === selectedCategory;
@@ -44,6 +51,72 @@ export default function Products() {
     setSearchTerm('');
     setSelectedCategory('all');
     toast.info('Filtros restablecidos');
+  };
+
+  const handleEditProduct = (product: Product) => {
+    setEditingProduct(product);
+    setIsProductDialogOpen(true);
+  };
+
+  const handleCreateProduct = () => {
+    setEditingProduct(null);
+    setIsProductDialogOpen(true);
+  }
+
+  const handleDeleteProduct = (product: Product) => {
+    setDeletingProduct(product);
+    setIsDeleteDialogOpen(true);
+  };
+
+  const handleConfirmDeleteProduct = () => {
+    if (!deletingProduct) return;
+
+    const newProducts = products.filter(p => p.id !== deletingProduct.id);
+    setProducts(newProducts);
+    setIsDeleteDialogOpen(false);
+    toast.success(`Producto "${deletingProduct.name}" eliminado exitosamente`);
+  }
+
+  const handleCancelDeleteProduct = () => {
+    setDeletingProduct(null);
+    setIsDeleteDialogOpen(false);
+  }
+
+  const handleAddStock = (product: Product) => {
+    setStockProduct(product);
+  };
+
+  const handleCloseProductDialog = () => {
+    setIsProductDialogOpen(false);
+    setEditingProduct(null);
+  };
+
+  const handleCloseStockDialog = () => {
+    setStockProduct(null);
+  };
+
+  const handleProductSaved = (savedProduct: Product) => {
+    let newProducts: Product[];
+    if (editingProduct) {
+      newProducts = products.map(p => p.id === savedProduct.id ? savedProduct : p);
+      toast.success(`Producto "${savedProduct.name}" actualizado exitosamente`);
+    } else {
+      newProducts = [...products, savedProduct];
+      toast.success(`Producto "${savedProduct.name}" creado exitosamente`);
+    }
+    setProducts(newProducts);
+    handleCloseProductDialog();
+  };
+
+  const handleStockAdded = (productId: string, quantity: number) => {
+    const newProducts = products.map(p => {
+      if (p.id === productId) {
+        return { ...p, stock: p.stock + quantity };
+      }
+      return p;
+    });
+    setProducts(newProducts);
+    handleCloseStockDialog();
   };
 
   return (
@@ -76,22 +149,90 @@ export default function Products() {
               </DialogContent>
             </Dialog>
             
-            <Dialog open={isProductDialogOpen} onOpenChange={setIsProductDialogOpen}>
-              <DialogTrigger asChild>
-                <Button className="w-full sm:w-auto justify-center">
-                  <Plus className="h-4 w-4 mr-2" />
-                  Nuevo Producto
-                </Button>
-              </DialogTrigger>
+            <Dialog open={isProductDialogOpen} onOpenChange={(open) => {
+              if (!open) handleCloseProductDialog();
+              setIsProductDialogOpen(open);
+            }}>
               <DialogContent className="w-[95vw] sm:w-full max-w-lg rounded-lg max-h-[90vh] overflow-y-auto">
                 <DialogHeader>
-                  <DialogTitle className="text-lg sm:text-xl">Nuevo Producto</DialogTitle>
+                  <DialogTitle className="text-lg sm:text-xl">
+                    {editingProduct ? 'Editar Producto' : 'Nuevo Producto'}
+                  </DialogTitle>
                 </DialogHeader>
-                <ProductForm onClose={() => setIsProductDialogOpen(false)} />
+                <ProductForm 
+                  onClose={handleCloseProductDialog} 
+                  onSave={handleProductSaved}
+                  initialProduct={editingProduct}
+                />
               </DialogContent>
             </Dialog>
+
+            <Button 
+              className="w-full sm:w-auto justify-center"
+              onClick={handleCreateProduct}
+            >
+              <Plus className="h-4 w-4 mr-2" />
+              Nuevo Producto
+            </Button>
           </div>
+            <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Eliminar producto</DialogTitle>
+                <DialogDescription>
+                  ¿Estás seguro de que deseas eliminar este producto? Esta acción no se puede deshacer.
+                </DialogDescription>
+              </DialogHeader>
+              {deletingProduct && (
+                <div className="space-y-4">
+                  <div className="p-4 bg-muted rounded-lg">
+                    <div className="flex items-center gap-3 mb-2">
+                      <div>
+                        <p className="font-medium">{deletingProduct.name}</p>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="flex justify-end gap-3">
+                    <Button 
+                      variant="outline" 
+                      onClick={handleCancelDeleteProduct}
+                      disabled={submitting}
+                    >
+                      Cancelar
+                    </Button>
+                    <Button 
+                      variant="destructive" 
+                      onClick={handleConfirmDeleteProduct}
+                      disabled={submitting}
+                    >
+                      {submitting && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+                      <Trash2 className="h-4 w-4 mr-2" />
+                      Eliminar Usuario
+                    </Button>
+                  </div>
+                </div>
+              )}
+            </DialogContent>
+          </Dialog>
         </div>
+
+        {/* Stock Dialog */}
+        <Dialog open={stockProduct !== null} onOpenChange={handleCloseStockDialog}>
+          <DialogContent className="w-[95vw] sm:w-full max-w-md rounded-lg">
+            <DialogHeader>
+              <DialogTitle className="text-lg sm:text-xl">
+                Agregar Stock - {stockProduct?.name}
+              </DialogTitle>
+            </DialogHeader>
+            {stockProduct && (
+              <AddStockForm 
+                product={stockProduct} 
+                onClose={handleCloseStockDialog}
+                onAddStock={handleStockAdded}
+              />
+            )}
+          </DialogContent>
+        </Dialog>
 
         <Tabs defaultValue="products" className="px-4 sm:px-0">
           <TabsList className="w-full sm:w-auto grid grid-cols-2 sm:inline-flex">
@@ -226,10 +367,28 @@ export default function Products() {
                             {product.isActive ? 'Activo' : 'Inactivo'}
                           </Badge>
                           <div className="flex gap-1">
-                            <Button variant="ghost" size="icon" className="h-8 w-8">
+                            <Button 
+                              variant="ghost" 
+                              size="icon" 
+                              className="h-8 w-8"
+                              onClick={() => handleAddStock(product)}
+                            >
+                              <PlusCircle className="h-4 w-4" />
+                            </Button>
+                            <Button 
+                              variant="ghost" 
+                              size="icon" 
+                              className="h-8 w-8"
+                              onClick={() => handleEditProduct(product)}
+                            >
                               <Edit2 className="h-4 w-4" />
                             </Button>
-                            <Button variant="ghost" size="icon" className="h-8 w-8">
+                            <Button 
+                              variant="ghost" 
+                              size="icon" 
+                              className="h-8 w-8"
+                              onClick={() => handleDeleteProduct(product)}
+                            >
                               <Trash2 className="h-4 w-4 text-destructive" />
                             </Button>
                           </div>
@@ -294,10 +453,31 @@ export default function Products() {
                               <span className="text-muted-foreground"> / {product.minStock}</span>
                             </TableCell>
                             <TableCell className="text-right whitespace-nowrap">
-                              <Button variant="ghost" size="icon" className="h-8 w-8">
+                              <Button 
+                                variant="ghost" 
+                                size="icon" 
+                                className="h-8 w-8"
+                                onClick={() => handleAddStock(product)}
+                                title="Agregar stock"
+                              >
+                                <PlusCircle className="h-4 w-4" />
+                              </Button>
+                              <Button 
+                                variant="ghost" 
+                                size="icon" 
+                                className="h-8 w-8"
+                                onClick={() => handleEditProduct(product)}
+                                title="Editar"
+                              >
                                 <Edit2 className="h-4 w-4" />
                               </Button>
-                              <Button variant="ghost" size="icon" className="h-8 w-8">
+                              <Button 
+                                variant="ghost" 
+                                size="icon" 
+                                className="h-8 w-8"
+                                onClick={() => handleDeleteProduct(product)}
+                                title="Eliminar"
+                              >
                                 <Trash2 className="h-4 w-4 text-destructive" />
                               </Button>
                             </TableCell>
@@ -370,29 +550,142 @@ export default function Products() {
   );
 }
 
-function ProductForm({ onClose }: { onClose: () => void }) {
+function AddStockForm({ product, onClose, onAddStock }: { 
+  product: Product; 
+  onClose: () => void;
+  onAddStock: (productId: string, quantity: number) => void;
+}) {
+  const [quantity, setQuantity] = useState<number>(1);
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    toast.success('Producto creado exitosamente');
+    if (quantity <= 0) {
+      toast.error('La cantidad debe ser mayor a 0');
+      return;
+    }
+    onAddStock(product.id, quantity);
+    toast.success(`Se agregaron ${quantity} unidades al stock de "${product.name}"`);
     onClose();
   };
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4 px-1">
       <div className="space-y-1.5 sm:space-y-2">
+        <Label className="text-sm">Stock actual</Label>
+        <p className="text-lg font-semibold">{product.stock} unidades</p>
+      </div>
+
+      <div className="space-y-1.5 sm:space-y-2">
+        <Label className="text-sm">Cantidad a agregar *</Label>
+        <Input 
+          type="number" 
+          min="1"
+          value={quantity}
+          onChange={(e) => setQuantity(parseInt(e.target.value) || 0)}
+          placeholder="Cantidad"
+          required 
+          className="text-sm"
+        />
+      </div>
+
+      <div className="space-y-1.5 sm:space-y-2">
+        <Label className="text-sm">Stock después de agregar</Label>
+        <p className="text-lg font-semibold text-primary">{product.stock + quantity} unidades</p>
+      </div>
+
+      <div className="flex flex-col sm:flex-row justify-end gap-2 sm:gap-3 pt-2">
+        <Button type="button" variant="outline" onClick={onClose} className="w-full sm:w-auto order-2 sm:order-1">
+          Cancelar
+        </Button>
+        <Button type="submit" className="w-full sm:w-auto order-1 sm:order-2">
+          Agregar Stock
+        </Button>
+      </div>
+    </form>
+  );
+}
+
+function ProductForm({ onClose, onSave, initialProduct }: { 
+  onClose: () => void; 
+  onSave: (product: Product) => void;
+  initialProduct?: Product | null;
+}) {
+  const isEditing = !!initialProduct;
+  
+  const [formData, setFormData] = useState({
+    name: initialProduct?.name || '',
+    description: initialProduct?.description || '',
+    category: initialProduct?.category || 'cake',
+    location: initialProduct?.location || 'store',
+    basePrice: initialProduct?.basePrice || 0,
+    pricePerPortion: initialProduct?.pricePerPortion || 0,
+    stock: initialProduct?.stock || 0,
+    minStock: initialProduct?.minStock || 1,
+    isActive: initialProduct?.isActive ?? true,
+  });
+
+  const handleChange = (field: string, value: any) => {
+    setFormData(prev => ({ ...prev, [field]: value }));
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!formData.name.trim()) {
+      toast.error('El nombre del producto es requerido');
+      return;
+    }
+    
+    if (formData.basePrice <= 0) {
+      toast.error('El precio base debe ser mayor a 0');
+      return;
+    }
+
+    const product: Product = {
+      id: initialProduct?.id || Date.now().toString(),
+      name: formData.name,
+      description: formData.description,
+      basePrice: formData.basePrice,
+      category: formData.category as any,
+      portionSize: 10,
+      pricePerPortion: formData.pricePerPortion,
+      isActive: formData.isActive,
+      location: formData.location as any,
+      stock: formData.stock,
+      minStock: formData.minStock,
+    };
+    
+    onSave(product);
+  };
+
+  return (
+    <form onSubmit={handleSubmit} className="space-y-4 px-1">
+      <div className="space-y-1.5 sm:space-y-2">
         <Label className="text-sm">Nombre *</Label>
-        <Input placeholder="Nombre del producto" required className="text-sm" />
+        <Input 
+          placeholder="Nombre del producto" 
+          value={formData.name}
+          onChange={(e) => handleChange('name', e.target.value)}
+          required 
+          className="text-sm" 
+        />
       </div>
       
       <div className="space-y-1.5 sm:space-y-2">
         <Label className="text-sm">Descripción</Label>
-        <Textarea placeholder="Descripción del producto" className="text-sm" rows={3} />
+        <Textarea 
+          placeholder="Descripción del producto" 
+          value={formData.description}
+          onChange={(e) => handleChange('description', e.target.value)}
+          className="text-sm" 
+          rows={3} 
+        />
       </div>
       
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
         <div className="space-y-1.5 sm:space-y-2">
           <Label className="text-sm">Categoría *</Label>
-          <Select>
+          <Select value={formData.category} onValueChange={(v) => handleChange('category', v)}>
             <SelectTrigger className="text-sm">
               <SelectValue placeholder="Seleccionar" />
             </SelectTrigger>
@@ -408,7 +701,7 @@ function ProductForm({ onClose }: { onClose: () => void }) {
         
         <div className="space-y-1.5 sm:space-y-2">
           <Label className="text-sm">Ubicación</Label>
-          <Select>
+          <Select value={formData.location} onValueChange={(v) => handleChange('location', v)}>
             <SelectTrigger className="text-sm">
               <SelectValue placeholder="Seleccionar" />
             </SelectTrigger>
@@ -423,27 +716,56 @@ function ProductForm({ onClose }: { onClose: () => void }) {
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
         <div className="space-y-1.5 sm:space-y-2">
           <Label className="text-sm">Precio base (Bs.)</Label>
-          <Input type="number" placeholder="0" className="text-sm" />
+          <Input 
+            type="number" 
+            placeholder="0" 
+            value={formData.basePrice || ''}
+            onChange={(e) => handleChange('basePrice', parseFloat(e.target.value) || 0)}
+            className="text-sm" 
+          />
         </div>
         <div className="space-y-1.5 sm:space-y-2">
           <Label className="text-sm">Precio por porción (Bs.)</Label>
-          <Input type="number" placeholder="0" className="text-sm" />
+          <Input 
+            type="number" 
+            placeholder="0" 
+            value={formData.pricePerPortion || ''}
+            onChange={(e) => handleChange('pricePerPortion', parseFloat(e.target.value) || 0)}
+            className="text-sm" 
+          />
         </div>
       </div>
       
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
         <div className="space-y-1.5 sm:space-y-2">
           <Label className="text-sm">Stock inicial</Label>
-          <Input type="number" placeholder="0" className="text-sm" />
+          <Input 
+            type="number" 
+            placeholder="0" 
+            value={formData.stock || ''}
+            onChange={(e) => handleChange('stock', parseInt(e.target.value) || 0)}
+            className="text-sm" 
+          />
         </div>
         <div className="space-y-1.5 sm:space-y-2">
           <Label className="text-sm">Stock mínimo</Label>
-          <Input type="number" placeholder="0" className="text-sm" />
+          <Input 
+            type="number" 
+            placeholder="0" 
+            value={formData.minStock || ''}
+            onChange={(e) => handleChange('minStock', parseInt(e.target.value) || 0)}
+            className="text-sm" 
+          />
         </div>
       </div>
       
       <div className="flex items-center gap-2">
-        <Switch id="active" defaultChecked className="scale-75 sm:scale-100" />
+        <Switch 
+          id="active" 
+          checked={formData.isActive}
+          onCheckedChange={(v) => handleChange('isActive', v)}
+          className="scale-75 sm:scale-100" 
+        />
         <Label htmlFor="active" className="text-sm">Producto activo</Label>
       </div>
       
@@ -452,7 +774,7 @@ function ProductForm({ onClose }: { onClose: () => void }) {
           Cancelar
         </Button>
         <Button type="submit" className="w-full sm:w-auto order-1 sm:order-2">
-          Crear Producto
+          {isEditing ? 'Actualizar Producto' : 'Crear Producto'}
         </Button>
       </div>
     </form>
