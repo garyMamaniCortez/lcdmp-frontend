@@ -15,7 +15,8 @@ import { MobileCard, MobileCardHeader, MobileCardRow, useIsMobile } from '@/comp
 import { Plus, Search, Edit2, Trash2, Cake, Package, Filter, X, PlusCircle, Loader2 } from 'lucide-react';
 import { mockProducts, mockFlavors } from '@/data/mockData';
 import { toast } from 'sonner';
-import { Product } from '@/types';
+import { Flavor, Product } from '@/types';
+
 
 export default function Products() {
   const isMobile = useIsMobile();
@@ -30,6 +31,12 @@ export default function Products() {
   const [stockProduct, setStockProduct] = useState<Product | null>(null);
   const [products, setProducts] = useState<Product[]>(mockProducts);
   const [submitting, setSubmitting] = useState(false);
+  
+  // Estado para sabores
+  const [flavors, setFlavors] = useState<Flavor[]>(mockFlavors);
+  const [editingFlavor, setEditingFlavor] = useState<Flavor | null>(null);
+  const [deletingFlavor, setDeletingFlavor] = useState<Flavor | null>(null);
+  const [isFlavorDeleteDialogOpen, setIsFlavorDeleteDialogOpen] = useState(false);
 
   const filteredProducts = products.filter(product => {
     const matchesSearch = product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -119,10 +126,59 @@ export default function Products() {
     handleCloseStockDialog();
   };
 
+  const handleAddFlavor = (newFlavor: Omit<Flavor, 'id'>) => {
+    const flavor: Flavor = {
+      ...newFlavor,
+      id: Date.now().toString(),
+    };
+    setFlavors([...flavors, flavor]);
+    toast.success(`Sabor "${flavor.name}" creado exitosamente`);
+  };
+
+  const handleToggleFlavorStatus = (flavorId: string) => {
+    setFlavors(flavors.map(flavor => 
+      flavor.id === flavorId 
+        ? { ...flavor, isActive: !flavor.isActive }
+        : flavor
+    ));
+    const flavor = flavors.find(f => f.id === flavorId);
+    const newStatus = !flavor?.isActive;
+    toast.success(`Sabor "${flavor?.name}" ${newStatus ? 'activado' : 'desactivado'} exitosamente`);
+  };
+
+  const handleDeleteFlavor = (flavor: Flavor) => {
+    setDeletingFlavor(flavor);
+    setIsFlavorDeleteDialogOpen(true);
+  };
+
+  const handleConfirmDeleteFlavor = () => {
+    if (!deletingFlavor) return;
+    
+    setFlavors(flavors.filter(f => f.id !== deletingFlavor.id));
+    setIsFlavorDeleteDialogOpen(false);
+    toast.success(`Sabor "${deletingFlavor.name}" eliminado exitosamente`);
+    setDeletingFlavor(null);
+  };
+
+  const handleCancelDeleteFlavor = () => {
+    setDeletingFlavor(null);
+    setIsFlavorDeleteDialogOpen(false);
+  };
+
+  const handleEditFlavor = (flavor: Flavor) => {
+    setEditingFlavor(flavor);
+    setIsFlavorDialogOpen(true);
+  };
+
+  const handleUpdateFlavor = (updatedFlavor: Flavor) => {
+    setFlavors(flavors.map(f => f.id === updatedFlavor.id ? updatedFlavor : f));
+    toast.success(`Sabor "${updatedFlavor.name}" actualizado exitosamente`);
+    setEditingFlavor(null);
+  };
+
   return (
     <MainLayout>
       <div className="space-y-4 sm:space-y-6 animate-fade-in">
-        {/* Header - Mobile first */}
         <div className="px-4 sm:px-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           <div>
             <h1 className="text-2xl sm:text-3xl font-display font-bold text-foreground">
@@ -134,7 +190,10 @@ export default function Products() {
           </div>
           
           <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
-            <Dialog open={isFlavorDialogOpen} onOpenChange={setIsFlavorDialogOpen}>
+            <Dialog open={isFlavorDialogOpen} onOpenChange={(open) => {
+              if (!open) setEditingFlavor(null);
+              setIsFlavorDialogOpen(open);
+            }}>
               <DialogTrigger asChild>
                 <Button variant="outline" className="w-full sm:w-auto justify-center">
                   <Plus className="h-4 w-4 mr-2" />
@@ -143,9 +202,18 @@ export default function Products() {
               </DialogTrigger>
               <DialogContent className="w-[95vw] sm:w-full max-w-lg rounded-lg">
                 <DialogHeader>
-                  <DialogTitle className="text-lg sm:text-xl">Nuevo Sabor</DialogTitle>
+                  <DialogTitle className="text-lg sm:text-xl">
+                    {editingFlavor ? 'Editar Sabor' : 'Nuevo Sabor'}
+                  </DialogTitle>
                 </DialogHeader>
-                <FlavorForm onClose={() => setIsFlavorDialogOpen(false)} />
+                <FlavorForm 
+                  onClose={() => {
+                    setIsFlavorDialogOpen(false);
+                    setEditingFlavor(null);
+                  }} 
+                  onSave={editingFlavor ? handleUpdateFlavor : handleAddFlavor}
+                  initialFlavor={editingFlavor}
+                />
               </DialogContent>
             </Dialog>
             
@@ -175,7 +243,8 @@ export default function Products() {
               Nuevo Producto
             </Button>
           </div>
-            <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+          
+          <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
             <DialogContent>
               <DialogHeader>
                 <DialogTitle>Eliminar producto</DialogTitle>
@@ -207,7 +276,37 @@ export default function Products() {
                     >
                       {submitting && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
                       <Trash2 className="h-4 w-4 mr-2" />
-                      Eliminar Usuario
+                      Eliminar Producto
+                    </Button>
+                  </div>
+                </div>
+              )}
+            </DialogContent>
+          </Dialog>
+
+          <Dialog open={isFlavorDeleteDialogOpen} onOpenChange={setIsFlavorDeleteDialogOpen}>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Eliminar sabor</DialogTitle>
+                <DialogDescription>
+                  ¿Estás seguro de que deseas eliminar este sabor? Esta acción no se puede deshacer.
+                </DialogDescription>
+              </DialogHeader>
+              {deletingFlavor && (
+                <div className="space-y-4">
+                  <div className="p-4 bg-muted rounded-lg">
+                    <p className="font-medium">{deletingFlavor.name}</p>
+                    <p className="text-sm text-muted-foreground">
+                      Tipo: {deletingFlavor.type === 'cake' ? 'Sabor de torta' : 'Sabor de relleno'}
+                    </p>
+                  </div>
+                  <div className="flex justify-end gap-3">
+                    <Button variant="outline" onClick={handleCancelDeleteFlavor}>
+                      Cancelar
+                    </Button>
+                    <Button variant="destructive" onClick={handleConfirmDeleteFlavor}>
+                      <Trash2 className="h-4 w-4 mr-2" />
+                      Eliminar Sabor
                     </Button>
                   </div>
                 </div>
@@ -280,7 +379,6 @@ export default function Products() {
                       </SelectContent>
                     </Select>
 
-                    {/* Reset Filters Button */}
                     <Button 
                       variant="outline" 
                       size="icon" 
@@ -292,7 +390,6 @@ export default function Products() {
                     </Button>
                   </div>
 
-                  {/* Active filters indicator */}
                   {(searchTerm || selectedCategory !== 'all') && (
                     <div className="flex items-center gap-2 text-xs text-muted-foreground flex-wrap">
                       <span>Filtros activos:</span>
@@ -312,7 +409,6 @@ export default function Products() {
               </CardContent>
             </Card>
 
-            {/* Products Table / Mobile Cards */}
             {isMobile ? (
               <div className="space-y-3">
                 {filteredProducts.length === 0 ? (
@@ -503,17 +599,41 @@ export default function Products() {
                 </CardHeader>
                 <CardContent className="px-4 pb-4 sm:px-6">
                   <div className="space-y-2">
-                    {mockFlavors.filter(f => f.type === 'cake').map(flavor => (
+                    {flavors.filter(f => f.type === 'cake').map(flavor => (
                       <div key={flavor.id} className="flex items-center justify-between p-2 sm:p-3 bg-muted/50 rounded-lg">
-                        <span className="text-sm sm:text-base font-medium">{flavor.name}</span>
+                        <span className={`text-sm sm:text-base font-medium ${!flavor.isActive ? 'text-muted-foreground line-through' : ''}`}>
+                          {flavor.name}
+                        </span>
                         <div className="flex items-center gap-1 sm:gap-2">
-                          <Switch checked={flavor.isActive} className="scale-75 sm:scale-100" />
-                          <Button variant="ghost" size="icon" className="h-7 w-7 sm:h-8 sm:w-8">
+                          <Switch 
+                            checked={flavor.isActive} 
+                            onCheckedChange={() => handleToggleFlavorStatus(flavor.id)}
+                            className="scale-75 sm:scale-100" 
+                          />
+                          <Button 
+                            variant="ghost" 
+                            size="icon" 
+                            className="h-7 w-7 sm:h-8 sm:w-8"
+                            onClick={() => handleEditFlavor(flavor)}
+                          >
+                            <Edit2 className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                          </Button>
+                          <Button 
+                            variant="ghost" 
+                            size="icon" 
+                            className="h-7 w-7 sm:h-8 sm:w-8"
+                            onClick={() => handleDeleteFlavor(flavor)}
+                          >
                             <Trash2 className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-destructive" />
                           </Button>
                         </div>
                       </div>
                     ))}
+                    {flavors.filter(f => f.type === 'cake').length === 0 && (
+                      <div className="text-center py-4 text-muted-foreground text-sm">
+                        No hay sabores de torta registrados
+                      </div>
+                    )}
                   </div>
                 </CardContent>
               </Card>
@@ -528,17 +648,41 @@ export default function Products() {
                 </CardHeader>
                 <CardContent className="px-4 pb-4 sm:px-6">
                   <div className="space-y-2">
-                    {mockFlavors.filter(f => f.type === 'filling').map(flavor => (
+                    {flavors.filter(f => f.type === 'filling').map(flavor => (
                       <div key={flavor.id} className="flex items-center justify-between p-2 sm:p-3 bg-muted/50 rounded-lg">
-                        <span className="text-sm sm:text-base font-medium">{flavor.name}</span>
+                        <span className={`text-sm sm:text-base font-medium ${!flavor.isActive ? 'text-muted-foreground line-through' : ''}`}>
+                          {flavor.name}
+                        </span>
                         <div className="flex items-center gap-1 sm:gap-2">
-                          <Switch checked={flavor.isActive} className="scale-75 sm:scale-100" />
-                          <Button variant="ghost" size="icon" className="h-7 w-7 sm:h-8 sm:w-8">
+                          <Switch 
+                            checked={flavor.isActive} 
+                            onCheckedChange={() => handleToggleFlavorStatus(flavor.id)}
+                            className="scale-75 sm:scale-100" 
+                          />
+                          <Button 
+                            variant="ghost" 
+                            size="icon" 
+                            className="h-7 w-7 sm:h-8 sm:w-8"
+                            onClick={() => handleEditFlavor(flavor)}
+                          >
+                            <Edit2 className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                          </Button>
+                          <Button 
+                            variant="ghost" 
+                            size="icon" 
+                            className="h-7 w-7 sm:h-8 sm:w-8"
+                            onClick={() => handleDeleteFlavor(flavor)}
+                          >
                             <Trash2 className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-destructive" />
                           </Button>
                         </div>
                       </div>
                     ))}
+                    {flavors.filter(f => f.type === 'filling').length === 0 && (
+                      <div className="text-center py-4 text-muted-foreground text-sm">
+                        No hay sabores de relleno registrados
+                      </div>
+                    )}
                   </div>
                 </CardContent>
               </Card>
@@ -781,10 +925,35 @@ function ProductForm({ onClose, onSave, initialProduct }: {
   );
 }
 
-function FlavorForm({ onClose }: { onClose: () => void }) {
+function FlavorForm({ onClose, onSave, initialFlavor }: { 
+  onClose: () => void; 
+  onSave: (flavor: Flavor) => void;
+  initialFlavor?: Flavor | null;
+}) {
+  const isEditing = !!initialFlavor;
+  const [name, setName] = useState(initialFlavor?.name || '');
+  const [type, setType] = useState<'cake' | 'filling'>(initialFlavor?.type || 'cake');
+  const [isActive, setIsActive] = useState(initialFlavor?.isActive ?? true);
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    toast.success('Sabor creado exitosamente');
+    
+    if (!name.trim()) {
+      toast.error('El nombre del sabor es requerido');
+      return;
+    }
+
+    const flavorData = {
+      name: name.trim(),
+      type,
+      isActive,
+    };
+
+    if (isEditing && initialFlavor) {
+      onSave({ ...flavorData, id: initialFlavor.id });
+    } else {
+      onSave(flavorData as any);
+    }
     onClose();
   };
 
@@ -792,12 +961,18 @@ function FlavorForm({ onClose }: { onClose: () => void }) {
     <form onSubmit={handleSubmit} className="space-y-4 px-1">
       <div className="space-y-1.5 sm:space-y-2">
         <Label className="text-sm">Nombre del sabor *</Label>
-        <Input placeholder="Ej: Chocolate belga" required className="text-sm" />
+        <Input 
+          placeholder="Ej: Chocolate belga" 
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          required 
+          className="text-sm" 
+        />
       </div>
       
       <div className="space-y-1.5 sm:space-y-2">
         <Label className="text-sm">Tipo *</Label>
-        <Select>
+        <Select value={type} onValueChange={(v) => setType(v as 'cake' | 'filling')}>
           <SelectTrigger className="text-sm">
             <SelectValue placeholder="Seleccionar tipo" />
           </SelectTrigger>
@@ -809,7 +984,12 @@ function FlavorForm({ onClose }: { onClose: () => void }) {
       </div>
       
       <div className="flex items-center gap-2">
-        <Switch id="flavor-active" defaultChecked className="scale-75 sm:scale-100" />
+        <Switch 
+          id="flavor-active" 
+          checked={isActive}
+          onCheckedChange={setIsActive}
+          className="scale-75 sm:scale-100" 
+        />
         <Label htmlFor="flavor-active" className="text-sm">Sabor activo</Label>
       </div>
       
@@ -818,7 +998,7 @@ function FlavorForm({ onClose }: { onClose: () => void }) {
           Cancelar
         </Button>
         <Button type="submit" className="w-full sm:w-auto order-1 sm:order-2">
-          Crear Sabor
+          {isEditing ? 'Actualizar Sabor' : 'Crear Sabor'}
         </Button>
       </div>
     </form>
