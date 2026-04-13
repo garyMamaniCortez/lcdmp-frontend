@@ -103,21 +103,11 @@ export default function Login() {
                 )}
               </Button>
             </form>
-
-            {/* Demo credentials */}
-            <div className="mt-6 p-4 bg-muted/50 rounded-lg">
-              <p className="text-sm font-medium text-foreground mb-2">Credenciales de prueba:</p>
-              <div className="text-xs text-muted-foreground space-y-1">
-                <p><strong>Admin:</strong> admin@lacasademipa.com / admin123</p>
-                <p><strong>Vendedor:</strong> vendedor@lacasademipa.com / venta123</p>
-                <p><strong>Hornos:</strong> panadero@lacasademipa.com / horno123</p>
-              </div>
-            </div>
           </CardContent>
         </Card>
 
         <p className="text-center text-sm text-muted-foreground mt-6">
-          © 2024 La Casa de Mi Padre. Cochabamba, Bolivia.
+          © {new Date().getFullYear()} La Casa de Mi Padre. Cochabamba, Bolivia.
         </p>
       </div>
     </div>
