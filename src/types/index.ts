@@ -162,8 +162,10 @@ export interface SweetTableCombo {
   name: string;
   totalQuantity: number;
   fixedPrice?: number;
+  price: number;
   products: ComboProduct[];
   isPreset: boolean;
+  details?: string;
 }
 
 export interface ComboProduct {
@@ -224,7 +226,9 @@ export interface CustomCake {
   portions: number;
   shape?: string;
   cakeFlavor: string;
-  fillingFlavors: string[];
+  secondCakeFlavor: string;
+  fillingFlavor: string;
+  secondFillingFlavor: string;
   design?: string;
   dedication?: string;
   referenceImages: string[];
@@ -237,11 +241,57 @@ export interface OrderCombo {
   products: ComboProduct[];
   totalQuantity: number;
   price: number;
+  details?: string;
 }
 
 export interface OrderGuarantee {
   amount: number;
   items: string;
+}
+
+export interface CreateOrderData {
+  orderType: 'cake' | 'products' | 'sweet_table' | 'mixed';
+  customerName: string;
+  customerPhone: string;
+  pickupDate: Date;
+  pickupTime: string;
+  items?: OrderItem[];
+  customCakes?: CustomCake[];
+  sweetTableCombo?: OrderCombo;
+  deliveryAddress?: string;
+  deliveryCost?: number;
+  deposit: number;
+  depositMethod?: PaymentMethod;
+  discount?: number;
+  couponCode?: string;
+  notes?: string;
+  guarantee?: OrderGuarantee;
+}
+
+export interface UpdateOrderData {
+  customerName?: string;
+  customerPhone?: string;
+  pickupDate?: Date;
+  pickupTime?: string;
+  status?: OrderStatus;
+  items?: OrderItem[];
+  customCakes?: CustomCake[];
+  sweetTableCombo?: OrderCombo;
+  deliveryAddress?: string;
+  deliveryCost?: number;
+  deposit?: number;
+  depositMethod?: 'cash' | 'qr';
+  discount?: number;
+  notes?: string;
+  guarantee?: OrderGuarantee;
+}
+
+export interface OrderFilters {
+  status?: OrderStatus;
+  startDate?: Date;
+  endDate?: Date;
+  customerName?: string;
+  customerPhone?: string;
 }
 
 // Cash Register Types
