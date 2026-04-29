@@ -13,11 +13,10 @@ import { MobileCard, MobileCardHeader, useIsMobile } from '@/components/ui/respo
 import { Plus, Search, Eye, RefreshCw, X, Filter, Pencil, Trash2, Edit } from 'lucide-react';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
-import { CreateOrderData, CustomCake, Order, OrderStatus, UpdateOrderData, OrderItem, OrderCombo, Flavor } from '@/types';
+import { CreateOrderData, CustomCake, Order, OrderStatus, UpdateOrderData, OrderItem, OrderCombo, Flavor, Product } from '@/types';
 import { toast } from 'sonner';
 import { statusConfig } from '@/types/consts';
 import { IOrdersApi, defaultOrdersApi } from '@/api/OrdersApi';
-import { mockProducts } from '@/data/mockData';
 
 interface OrdersProps {
   ordersApi?: IOrdersApi;
@@ -34,15 +33,20 @@ export default function Orders({ ordersApi = defaultOrdersApi }: OrdersProps) {
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
   const [fillings, setFillings] = useState<Flavor[]>(null);
+  const [products, setProducts] = useState<Product[]>([]);
   const [stats, setStats] = useState<Array<{ status: string; label: string; color: string; icon: any; count: number }>>([]);
 
   const loadOrders = useCallback(async () => {
     try {
       setLoading(true);
-      const data = await ordersApi.getOrders();
-      const flavors = await ordersApi.getFlavors();
+      const [data, flavors, productsResponse] = await Promise.all([
+        ordersApi.getOrders(),
+        ordersApi.getFlavors(),
+        ordersApi.getProducts()
+      ]);
       setOrders(data);
       setFillings(flavors);
+      setProducts(productsResponse);
       const newStats = Object.entries(statusConfig).map(([status, config]) => ({
         status,
         ...config,
@@ -177,7 +181,7 @@ export default function Orders({ ordersApi = defaultOrdersApi }: OrdersProps) {
               <OrderForm
                 onSubmit={handleCreateOrder}
                 onClose={() => setIsNewOrderOpen(false)}
-                products={mockProducts}
+                products={products}
                 flavors={fillings}
               />
             </DialogContent>
@@ -510,7 +514,7 @@ export default function Orders({ ordersApi = defaultOrdersApi }: OrdersProps) {
                 initialData={editingOrder}
                 onSubmit={(data) => handleUpdateOrder(editingOrder.id, data)}
                 onClose={() => setEditingOrder(null)}
-                products={mockProducts}
+                products={products}
                 flavors={fillings}
                 isEditing
               />

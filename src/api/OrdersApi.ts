@@ -1,5 +1,5 @@
 import api from '@/api/api';
-import { mockOrders } from '@/data/mockData';
+import { mockOrders, mockProducts } from '@/data/mockData';
 import type { 
   Order, 
   OrderStatus,
@@ -9,7 +9,8 @@ import type {
   OrderFilters,
   CreateOrderData,
   UpdateOrderData,
-  Flavor
+  Flavor,
+  Product
 } from '@/types';
 
 export interface IOrdersApi {
@@ -20,11 +21,13 @@ export interface IOrdersApi {
   deleteOrder(id: string): Promise<void>;
   updateOrderStatus(id: string, status: OrderStatus): Promise<Order>;
   getFlavors(): Promise<Flavor[]>;
+  getProducts(searchTerm?: string): Promise<Product[]>;
 }
 
 export class MockOrdersApi implements IOrdersApi {
   private orders: Order[] = [];
   private nextId = 1;
+  private products: Product[] = [...mockProducts];
 
   constructor() {
     this.orders = [...mockOrders];
@@ -198,6 +201,21 @@ export class MockOrdersApi implements IOrdersApi {
       throw new Error(error.response?.data?.message || error.message || 'Error de conexión');
     }
   }
+
+  async getProducts(searchTerm: string = ''): Promise<Product[]> {
+    await new Promise(resolve => setTimeout(resolve, 300));
+    let filtered = [...this.products];
+    
+    if (searchTerm.trim()) {
+      const term = searchTerm.toLowerCase();
+      filtered = filtered.filter(p => 
+        p.name.toLowerCase().includes(term) ||
+        p.description?.toLowerCase().includes(term)
+      );
+    }
+    
+    return filtered;
+  }
 }
 
 export class OrdersApi implements IOrdersApi {
@@ -341,6 +359,23 @@ export class OrdersApi implements IOrdersApi {
       return response.data.data as Flavor[];
     } catch (error: any) {
       console.error('Error en getFlavors:', error);
+      throw new Error(error.response?.data?.message || error.message || 'Error de conexión');
+    }
+  }
+  
+  async getProducts(searchTerm: string = ''): Promise<Product[]> {
+    try {
+      const response = await api.get('/products', {
+        params: { search: searchTerm || undefined }
+      });
+
+      if (!response.data.success) {
+        throw new Error(response.data.message || 'Error al obtener productos');
+      }
+
+      return response.data.data as Product[];
+    } catch (error: any) {
+      console.error('Error en getProducts:', error);
       throw new Error(error.response?.data?.message || error.message || 'Error de conexión');
     }
   }
