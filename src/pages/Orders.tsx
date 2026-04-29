@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useEffect, useState, useCallback, useMemo, useRef } from 'react';
 import { MainLayout } from '@/components/layout/MainLayout';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -10,13 +10,14 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { MobileCard, MobileCardHeader, useIsMobile } from '@/components/ui/responsive-table';
-import { Plus, Search, Eye, RefreshCw, X, Filter, Pencil, Trash2, Edit } from 'lucide-react';
+import { Plus, Search, Eye, RefreshCw, X, Filter, Pencil, Trash2, Edit, Loader2 } from 'lucide-react';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
-import { CreateOrderData, CustomCake, Order, OrderStatus, UpdateOrderData, OrderItem, OrderCombo, Flavor, Product } from '@/types';
+import { CreateOrderData, CustomCake, Order, OrderStatus, UpdateOrderData, OrderItem, OrderCombo, Flavor, Product, OrderFilters } from '@/types';
 import { toast } from 'sonner';
 import { statusConfig } from '@/types/consts';
 import { IOrdersApi, defaultOrdersApi } from '@/api/OrdersApi';
+import { useDebounce } from '@/hooks/useDebounce';
 
 interface OrdersProps {
   ordersApi?: IOrdersApi;
@@ -32,45 +33,85 @@ export default function Orders({ ordersApi = defaultOrdersApi }: OrdersProps) {
   const [showFilters, setShowFilters] = useState(false);
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
-  const [fillings, setFillings] = useState<Flavor[]>(null);
+  const [fillings, setFillings] = useState<Flavor[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
   const [stats, setStats] = useState<Array<{ status: string; label: string; color: string; icon: any; count: number }>>([]);
 
+  const abortControllerRef = useRef<AbortController | null>(null);
+
+  const debouncedSearchTerm = useDebounce(searchTerm, 300);
+
+  const isPhoneSearch = useMemo(() => {
+    return /^\d+$/.test(debouncedSearchTerm);
+  }, [debouncedSearchTerm]);
+
+
+
   const loadOrders = useCallback(async () => {
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+    }
+    
+    abortControllerRef.current = new AbortController();
+    
     try {
       setLoading(true);
-      const [data, flavors, productsResponse] = await Promise.all([
-        ordersApi.getOrders(),
+      
+      const filters: OrderFilters = {};
+      
+      if (selectedStatus !== 'all') {
+        filters.status = selectedStatus as OrderStatus;
+      }
+      
+      if (debouncedSearchTerm) {
+        if (isPhoneSearch) {
+          filters.customerPhone = debouncedSearchTerm;
+        } else {
+          filters.customerName = debouncedSearchTerm;
+        }
+      }
+      
+      const [ordersData, flavors, productsResponse] = await Promise.all([
+        ordersApi.getOrders(filters, abortControllerRef.current.signal),
         ordersApi.getFlavors(),
         ordersApi.getProducts()
       ]);
-      setOrders(data);
-      setFillings(flavors);
-      setProducts(productsResponse);
-      const newStats = Object.entries(statusConfig).map(([status, config]) => ({
-        status,
-        ...config,
-        count: data.filter(o => o.status === status).length
-      }));
-      setStats(newStats);
+      
+      if (!abortControllerRef.current.signal.aborted) {
+        setOrders(ordersData);
+        setFillings(flavors);
+        setProducts(productsResponse);
+        
+        const newStats = Object.entries(statusConfig).map(([status, config]) => ({
+          status,
+          ...config,
+          count: ordersData.filter(o => o.status === status).length
+        }));
+        setStats(newStats);
+      }
     } catch (error: any) {
-      console.error('Error loading orders:', error);
-      toast.error(error.message || 'Error al cargar los pedidos');
+      if (error.name !== 'AbortError') {
+        console.error('Error loading orders:', error);
+        toast.error(error.message || 'Error al cargar los pedidos');
+      }
     } finally {
-      setLoading(false);
+      if (!abortControllerRef.current?.signal.aborted) {
+        setLoading(false);
+      }
     }
-  }, [ordersApi]);
+  }, [selectedStatus, debouncedSearchTerm, isPhoneSearch]);
 
   useEffect(() => {
     loadOrders();
   }, [loadOrders]);
 
-  const filteredOrders = orders.filter(order => {
-    const matchesSearch = order.customerName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      order.customerPhone.includes(searchTerm);
-    const matchesStatus = selectedStatus === 'all' || order.status === selectedStatus;
-    return matchesSearch && matchesStatus;
-  });
+  useEffect(() => {
+    return () => {
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
+      }
+    };
+  }, []);
 
   const getOrderPriority = (order: Order) => {
     const hoursUntilPickup = (order.pickupDate.getTime() - Date.now()) / (1000 * 60 * 60);
@@ -78,12 +119,14 @@ export default function Orders({ ordersApi = defaultOrdersApi }: OrdersProps) {
     return hoursUntilPickup - (totalPortions / 10);
   };
 
-  const sortedOrders = [...filteredOrders].sort((a, b) => getOrderPriority(a) - getOrderPriority(b));
+  const sortedOrders = useMemo(() => {
+    return [...orders].sort((a, b) => getOrderPriority(a) - getOrderPriority(b));
+  }, [orders]);
 
   const handleCreateOrder = async (orderData: CreateOrderData) => {
     try {
       const newOrder = await ordersApi.createOrder(orderData);
-      setOrders(prev => [...prev, newOrder]);
+      await loadOrders();
       toast.success('Pedido creado exitosamente');
       setIsNewOrderOpen(false);
     } catch (error: any) {
@@ -95,7 +138,7 @@ export default function Orders({ ordersApi = defaultOrdersApi }: OrdersProps) {
   const handleUpdateOrder = async (id: string, data: UpdateOrderData) => {
     try {
       const updatedOrder = await ordersApi.updateOrder(id, data);
-      setOrders(prev => prev.map(order => order.id === id ? updatedOrder : order));
+      await loadOrders();
       toast.success('Pedido actualizado exitosamente');
       setEditingOrder(null);
     } catch (error: any) {
@@ -107,7 +150,7 @@ export default function Orders({ ordersApi = defaultOrdersApi }: OrdersProps) {
   const handleUpdateStatus = async (id: string, status: OrderStatus) => {
     try {
       const updatedOrder = await ordersApi.updateOrderStatus(id, status);
-      setOrders(prev => prev.map(order => order.id === id ? updatedOrder : order));
+      await loadOrders();
       toast.success(`Estado actualizado a ${statusConfig[status].label}`);
     } catch (error: any) {
       console.error('Error updating status:', error);
@@ -116,13 +159,11 @@ export default function Orders({ ordersApi = defaultOrdersApi }: OrdersProps) {
   };
 
   const handleDeleteOrder = async (id: string) => {
-    if (!confirm('¿Estás seguro de que deseas eliminar este pedido? Esta acción no se puede deshacer.')) {
-      return;
-    }
+    if (!confirm('¿Estás seguro de que deseas eliminar este pedido?')) return;
     
     try {
       await ordersApi.deleteOrder(id);
-      setOrders(prev => prev.filter(order => order.id !== id));
+      await loadOrders();
       toast.success('Pedido eliminado exitosamente');
     } catch (error: any) {
       console.error('Error deleting order:', error);
@@ -139,19 +180,6 @@ export default function Orders({ ordersApi = defaultOrdersApi }: OrdersProps) {
   const handleEditOrder = (order: Order) => {
     setEditingOrder(order);
   };
-
-  if (loading) {
-    return (
-      <MainLayout>
-        <div className="flex items-center justify-center h-screen">
-          <div className="text-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
-            <p className="mt-4 text-muted-foreground">Cargando pedidos...</p>
-          </div>
-        </div>
-      </MainLayout>
-    );
-  }
 
   return (
     <MainLayout>
@@ -281,7 +309,11 @@ export default function Orders({ ordersApi = defaultOrdersApi }: OrdersProps) {
         </Card>
 
         {/* Orders List */}
-        {isMobile ? (
+        {loading ? (
+          <div className="flex items-center justify-center py-8">
+            <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          </div>
+        ) : isMobile ? (
           <div className="space-y-3 px-4">
             {sortedOrders.length === 0 ? (
               <Card>

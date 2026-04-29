@@ -14,7 +14,7 @@ import type {
 } from '@/types';
 
 export interface IOrdersApi {
-  getOrders(filters?: OrderFilters): Promise<Order[]>;
+  getOrders(filters?: OrderFilters, signal?: AbortSignal): Promise<Order[]>;
   getOrderById(id: string): Promise<Order>;
   createOrder(orderData: CreateOrderData): Promise<Order>;
   updateOrder(id: string, data: UpdateOrderData): Promise<Order>;
@@ -34,7 +34,7 @@ export class MockOrdersApi implements IOrdersApi {
     this.nextId = this.orders.length + 1;
   }
 
-  async getOrders(filters?: OrderFilters): Promise<Order[]> {
+  async getOrders(filters?: OrderFilters, signal?: AbortSignal): Promise<Order[]> {
     await this.simulateNetworkDelay();
     
     let filtered = [...this.orders];
@@ -219,7 +219,7 @@ export class MockOrdersApi implements IOrdersApi {
 }
 
 export class OrdersApi implements IOrdersApi {
-  async getOrders(filters?: OrderFilters): Promise<Order[]> {
+  async getOrders(filters?: OrderFilters, signal?: AbortSignal): Promise<Order[]> {
     try {
       const params: any = {};
       
@@ -231,13 +231,15 @@ export class OrdersApi implements IOrdersApi {
         if (filters.customerPhone) params.customerPhone = filters.customerPhone;
       }
       
-      const response = await api.get('/orders', { params });
+      const response = await api.get('/orders', { 
+        params,
+        signal
+      });
       
       if (!response.data.success) {
         throw new Error(response.data.message || 'Error al obtener pedidos');
       }
       
-      // Convertir fechas de string a Date
       const orders = response.data.data.map((order: any) => ({
         ...order,
         pickupDate: new Date(order.pickupDate),
@@ -246,6 +248,11 @@ export class OrdersApi implements IOrdersApi {
       
       return orders;
     } catch (error: any) {
+      if (error.name === 'CanceledError' || error.name === 'AbortError') {
+        console.log('Petición cancelada');
+        throw error;
+      }
+      
       console.error('Error en getOrders:', error);
       throw new Error(error.response?.data?.message || error.message || 'Error de conexión');
     }
