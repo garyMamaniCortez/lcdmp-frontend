@@ -83,6 +83,7 @@ export class MockOrdersApi implements IOrdersApi {
     
     const newOrder: Order = {
       id: this.nextId.toString(),
+      orderNumber: "",
       ...orderData,
       status: 'pending',
       createdAt: new Date(),
@@ -388,4 +389,4 @@ export class OrdersApi implements IOrdersApi {
   }
 }
 
-export const defaultOrdersApi = new MockOrdersApi();
+export const defaultOrdersApi = new OrdersApi();

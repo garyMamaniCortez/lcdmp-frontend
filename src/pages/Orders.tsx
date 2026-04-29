@@ -177,9 +177,15 @@ export default function Orders({ ordersApi = defaultOrdersApi }: OrdersProps) {
     toast.info('Filtros restablecidos');
   };
 
-  const handleEditOrder = (order: Order) => {
+  const handleEditOrder = async (o: Order) => {
+    const order = await ordersApi.getOrderById(o.id);
     setEditingOrder(order);
   };
+
+  const handleSelectOrder = async (o: Order) => {
+    const order = await ordersApi.getOrderById(o.id);
+    setSelectedOrder(order);
+  }
 
   return (
     <MainLayout>
@@ -332,7 +338,7 @@ export default function Orders({ ordersApi = defaultOrdersApi }: OrdersProps) {
                   >
                     <MobileCardHeader className="px-3 py-2">
                       <div className="flex items-center gap-2 min-w-0">
-                        <span className="font-bold text-primary text-sm">#{order.id}</span>
+                        <span className="font-bold text-primary text-sm">#{order.orderNumber}</span>
                         <Badge className={`${config.color} text-xs px-2 py-0.5`}>
                           <Icon className="h-3 w-3 mr-1 inline" />
                           {config.label}
@@ -342,7 +348,7 @@ export default function Orders({ ordersApi = defaultOrdersApi }: OrdersProps) {
                         variant="ghost" 
                         size="icon" 
                         className="h-8 w-8 shrink-0"
-                        onClick={() => setSelectedOrder(order)}
+                        onClick={() => handleSelectOrder(order)}
                       >
                         <Eye className="h-4 w-4" />
                       </Button>
@@ -433,7 +439,7 @@ export default function Orders({ ordersApi = defaultOrdersApi }: OrdersProps) {
                       const Icon = config.icon;
                       return (
                         <TableRow key={order.id} className="hover:bg-muted/50">
-                          <TableCell className="font-medium">#{order.id}</TableCell>
+                          <TableCell className="font-medium">#{order.orderNumber}</TableCell>
                           <TableCell>
                             <div>
                               <p className="font-medium">{order.customerName}</p>
@@ -460,7 +466,7 @@ export default function Orders({ ordersApi = defaultOrdersApi }: OrdersProps) {
                               )}
                               {order.items.length > 0 && (
                                 <p className="text-sm">
-                                  {order.items.map((item,i) => `${item.quantity} ${item.product.name}`).join(', ')}
+                                  {order.items.map((item,i) => `${item.quantity} ${item.productName}`).join(', ')}
                                 </p>
                               )}
                             </div>
@@ -494,7 +500,7 @@ export default function Orders({ ordersApi = defaultOrdersApi }: OrdersProps) {
                               <Button 
                                 variant="ghost" 
                                 size="icon"
-                                onClick={() => setSelectedOrder(order)}
+                                onClick={() => handleSelectOrder(order)}
                                 className="h-8 w-8"
                               >
                                 <Eye className="h-4 w-4" />
@@ -529,7 +535,7 @@ export default function Orders({ ordersApi = defaultOrdersApi }: OrdersProps) {
         <Dialog open={!!selectedOrder} onOpenChange={() => setSelectedOrder(null)}>
           <DialogContent className="w-[95vw] sm:w-full max-w-2xl max-h-[90vh] overflow-y-auto rounded-lg">
             <DialogHeader>
-              <DialogTitle className="text-lg sm:text-xl">Pedido #{selectedOrder?.id}</DialogTitle>
+              <DialogTitle className="text-lg sm:text-xl">Pedido #{selectedOrder?.orderNumber}</DialogTitle>
             </DialogHeader>
             {selectedOrder && <OrderDetail order={selectedOrder} />}
           </DialogContent>
@@ -539,7 +545,7 @@ export default function Orders({ ordersApi = defaultOrdersApi }: OrdersProps) {
         <Dialog open={!!editingOrder} onOpenChange={() => setEditingOrder(null)}>
           <DialogContent className="w-[95vw] sm:w-full max-w-3xl max-h-[90vh] overflow-y-auto rounded-lg">
             <DialogHeader>
-              <DialogTitle className="text-lg sm:text-xl">Editar Pedido #{editingOrder?.id}</DialogTitle>
+              <DialogTitle className="text-lg sm:text-xl">Editar Pedido #{editingOrder?.orderNumber}</DialogTitle>
             </DialogHeader>
             {editingOrder && (
               <OrderForm
@@ -1409,7 +1415,7 @@ function OrderDetail({ order }: { order: Order }) {
               <div className="flex justify-between items-start">
                 <div className="flex-1">
                   <p className="font-medium">
-                    {item.quantity} x {item.product.name}
+                    {item.quantity} x {item.product?.name || item.productName}
                   </p>
                   {item.notes && (
                     <p className="text-xs text-muted-foreground mt-1">📝 {item.notes}</p>
@@ -1530,7 +1536,7 @@ function OrderDetail({ order }: { order: Order }) {
           {statusConfig[order.status].label}
         </Badge>
         <p className="text-xs text-muted-foreground">
-          Creado por: {order.createdBy}
+          Creado por: {order.createdByUsername}
         </p>
       </div>
     </div>

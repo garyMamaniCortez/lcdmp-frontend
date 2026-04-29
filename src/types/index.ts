@@ -191,6 +191,7 @@ export type PaymentMethod = 'cash' | 'qr';
 
 export interface Order {
   id: string;
+  orderNumber: string;
   orderType: OrderType;
   customerName: string;
   customerPhone: string;
@@ -211,11 +212,13 @@ export interface Order {
   notes?: string;
   createdAt: Date;
   createdBy: string;
+  createdByUsername?: string
 }
 
 export interface OrderItem {
   productId: string;
   product: Product;
+  productName?: string;
   quantity: number;
   price: number;
   notes?: string;
