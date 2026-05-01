@@ -137,6 +137,7 @@ export default function Orders({ ordersApi = defaultOrdersApi }: OrdersProps) {
 
   const handleUpdateOrder = async (id: string, data: UpdateOrderData) => {
     try {
+      data.pickupTime = data.pickupTime.slice(0,5);
       const updatedOrder = await ordersApi.updateOrder(id, data);
       await loadOrders();
       toast.success('Pedido actualizado exitosamente');
@@ -584,7 +585,7 @@ function OrderForm({ initialData, onSubmit, onClose, products, flavors, isEditin
         pickupTime: initialData.pickupTime,
         items: initialData.items,
         customCakes: initialData.customCakes,
-        sweetTableCombo: initialData.sweetTableCombo,
+        sweetTableCombo: initialData.sweetTableCombo ? initialData.sweetTableCombo : undefined,
         deliveryAddress: initialData.deliveryAddress,
         deliveryCost: initialData.deliveryCost,
         deposit: initialData.deposit,
