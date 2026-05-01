@@ -613,6 +613,41 @@ function OrderForm({ initialData, onSubmit, onClose, products, flavors, isEditin
     hasSweetTable: !!formData.sweetTableCombo
   };
 
+  const calculateSubtotal = () => {
+    let subtotal = 0;
+    
+    (formData.customCakes || []).forEach(cake => {
+      subtotal += (cake.price || 0) * cake.quantity;
+    });
+    
+    (formData.items || []).forEach(item => {
+      subtotal += (item.price || 0) * item.quantity;
+    });
+    
+    if (formData.sweetTableCombo) {
+      subtotal += formData.sweetTableCombo.price || 0;
+    }
+    
+    return subtotal;
+  };
+
+  const calculateTotal = () => {
+    let total = calculateSubtotal();
+    
+    if (formData.discount) {
+      total -= formData.discount;
+    }
+    
+    if (formData.deliveryCost) {
+      total += formData.deliveryCost;
+    }
+    
+    return total;
+  };
+
+  const subtotal = calculateSubtotal();
+  const total = calculateTotal();
+
   const cakeFlavors = flavors.filter((f: any) => f.type === 'cake' && f.isActive);
   const fillingFlavors = flavors.filter((f: any) => f.type === 'filling' && f.isActive);
   const catalogProducts = products.filter((p: any) => p.isActive && p.location === 'store');
@@ -689,34 +724,6 @@ function OrderForm({ initialData, onSubmit, onClose, products, flavors, isEditin
     if (!selectedOptions.hasCake && !selectedOptions.hasProducts && !selectedOptions.hasSweetTable) {
       toast.error('Debe seleccionar al menos un tipo de producto');
       return;
-    }
-
-    // Calcular totales
-    let total = 0;
-    
-    // Sumar tortas
-    (formData.customCakes || []).forEach(cake => {
-      total += (cake.price || 0) * cake.quantity;
-    });
-    
-    // Sumar productos
-    (formData.items || []).forEach(item => {
-      total += (item.price || 0) * item.quantity;
-    });
-    
-    // Sumar mesa dulce
-    if (formData.sweetTableCombo) {
-      total += formData.sweetTableCombo.price;
-    }
-    
-    // Aplicar descuento
-    if (formData.discount) {
-      total -= formData.discount;
-    }
-    
-    // Sumar costo de envío
-    if (formData.deliveryCost) {
-      total += formData.deliveryCost;
     }
     
     const submitData = {
@@ -1321,6 +1328,56 @@ function OrderForm({ initialData, onSubmit, onClose, products, flavors, isEditin
           value={formData.notes || ''}
           onChange={(e) => updateFormField('notes', e.target.value)}
         />
+      </div>
+
+      <div className="space-y-3 bg-muted/20 rounded-lg p-4 border">
+        <div className="flex justify-between items-center py-2">
+          <span className="font-medium text-sm">Subtotal:</span>
+          <span className="text-lg font-semibold text-primary">
+            Bs. {subtotal.toFixed(2)}
+          </span>
+        </div>
+        
+        {formData.discount > 0 && (
+          <div className="flex justify-between items-center py-2 text-sm text-muted-foreground">
+            <span>Descuento:</span>
+            <span className="text-destructive">- Bs. {formData.discount.toFixed(2)}</span>
+          </div>
+        )}
+        
+        {formData.deliveryCost > 0 && (
+          <div className="flex justify-between items-center py-2 text-sm text-muted-foreground">
+            <span>Costo de envío:</span>
+            <span>+ Bs. {formData.deliveryCost.toFixed(2)}</span>
+          </div>
+        )}
+        
+        <div className="border-t pt-3 mt-2">
+          <div className="flex justify-between items-center">
+            <span className="text-base font-bold">Total a pagar:</span>
+            <span className="text-2xl font-bold text-primary">
+              Bs. {total.toFixed(2)}
+            </span>
+          </div>
+        </div>
+        
+        {formData.deposit > 0 && (
+          <div className="flex justify-between items-center py-2 text-sm bg-muted p-2 rounded mt-2">
+            <span className="font-medium">Adelanto:</span>
+            <span className="text-green-600 font-medium">
+              Bs. {formData.deposit.toFixed(2)}
+            </span>
+          </div>
+        )}
+        
+        {formData.deposit > 0 && total > 0 && (
+          <div className="flex justify-between items-center py-2 text-sm font-medium">
+            <span>Saldo pendiente:</span>
+            <span className="text-lg font-semibold text-orange-600">
+              Bs. {(total - formData.deposit).toFixed(2)}
+            </span>
+          </div>
+        )}
       </div>
 
       <div className="flex flex-col sm:flex-row justify-end gap-2 sm:gap-3 pt-2">
