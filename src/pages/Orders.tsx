@@ -766,8 +766,13 @@ function OrderForm({ initialData, onSubmit, onClose, products, flavors, isEditin
             type="date" 
             required 
             className="text-sm"
+            min={new Date().toISOString().split('T')[0]}
             value={formData.pickupDate instanceof Date ? format(formData.pickupDate, 'yyyy-MM-dd') : formData.pickupDate}
-            onChange={(e) => updateFormField('pickupDate', new Date(e.target.value))}
+            onChange={(e) => {
+              const [year, month, day] = e.target.value.split('-');
+              const localDate = new Date(Number(year), Number(month) - 1, Number(day));
+              updateFormField('pickupDate', localDate)
+            }}
           />
         </div>
         <div className="space-y-1.5 sm:space-y-2">
