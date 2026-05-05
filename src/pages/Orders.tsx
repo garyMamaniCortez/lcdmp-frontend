@@ -18,9 +18,32 @@ import { toast } from 'sonner';
 import { statusConfig } from '@/types/consts';
 import { IOrdersApi, defaultOrdersApi } from '@/api/OrdersApi';
 import { useDebounce } from '@/hooks/useDebounce';
+import { OrderType } from '../types/index';
 
 interface OrdersProps {
   ordersApi?: IOrdersApi;
+}
+
+const getOrderType = (orderType: OrderType) => {
+  let type;
+  switch (orderType.toLowerCase()) {
+    case "cake":
+      type = "Torta";
+      break;
+    case "products":
+      type = "Productos";
+      break;
+    case "sweet_table":
+      type = "Mesa Dulce";
+      break;
+    case "mixed":
+      type = "Varios";
+      break;
+    default:
+      type = "";
+      break
+  }
+  return type;
 }
 
 export default function Orders({ ordersApi = defaultOrdersApi }: OrdersProps) {
@@ -1418,7 +1441,7 @@ function OrderDetail({ order }: { order: Order }) {
         <div className="grid grid-cols-2 gap-3">
           <div>
             <p className="text-xs text-muted-foreground">Tipo de pedido</p>
-            <p className="text-sm font-medium capitalize">{order.orderType}</p>
+            <p className="text-sm font-medium capitalize">{getOrderType(order.orderType)}</p>
           </div>
           <div>
             <p className="text-xs text-muted-foreground">Fecha de creación</p>
