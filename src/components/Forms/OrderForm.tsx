@@ -1,0 +1,837 @@
+import { useState } from 'react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Plus, X } from 'lucide-react';
+import { format } from 'date-fns';
+import { CreateOrderData, CustomCake, Order, UpdateOrderData, OrderItem } from '@/types';
+import { toast } from 'sonner';
+import { Textarea } from '@/components/ui/textarea';
+import { Label } from '@/components/ui/label';
+
+export interface OrderFormProps {
+  initialData?: Order;
+  onSubmit: (data: CreateOrderData | UpdateOrderData) => void;
+  onClose: () => void;
+  products: any[];
+  flavors: any[];
+  isEditing?: boolean;
+}
+
+export default function OrderForm({ initialData, onSubmit, onClose, products, flavors, isEditing = false }: OrderFormProps) {
+  const [formData, setFormData] = useState<CreateOrderData | UpdateOrderData>(() => {
+    if (initialData) {
+      return {
+        customerName: initialData.customerName,
+        customerPhone: initialData.customerPhone,
+        pickupDate: initialData.pickupDate,
+        pickupTime: initialData.pickupTime,
+        items: initialData.items,
+        customCakes: initialData.customCakes,
+        sweetTableCombo: initialData.sweetTableCombo ? initialData.sweetTableCombo : undefined,
+        deliveryAddress: initialData.deliveryAddress,
+        deliveryCost: initialData.deliveryCost,
+        deposit: initialData.deposit,
+        depositMethod: initialData.depositMethod,
+        discount: initialData.discount,
+        notes: initialData.notes,
+      };
+    }
+    return {
+      customerName: '',
+      customerPhone: '',
+      pickupDate: new Date(),
+      pickupTime: '12:00',
+      items: [],
+      customCakes: [],
+      deliveryCost: 0,
+      deposit: 0,
+      discount: 0,
+      notes: '',
+    };
+  });
+
+  const selectedOptions = {
+    hasCake: (formData.customCakes?.length || 0) > 0,
+    hasProducts: (formData.items?.length || 0) > 0,
+    hasSweetTable: !!formData.sweetTableCombo
+  };
+
+  const calculateSubtotal = () => {
+    let subtotal = 0;
+    
+    (formData.customCakes || []).forEach(cake => {
+      subtotal += (cake.price || 0) * cake.quantity;
+    });
+    
+    (formData.items || []).forEach(item => {
+      subtotal += (item.price || 0) * item.quantity;
+    });
+    
+    if (formData.sweetTableCombo) {
+      subtotal += formData.sweetTableCombo.price || 0;
+    }
+    
+    return subtotal;
+  };
+
+  const calculateTotal = () => {
+    let total = calculateSubtotal();
+    
+    if (formData.discount) {
+      total -= formData.discount;
+    }
+    
+    if (formData.deliveryCost) {
+      total += formData.deliveryCost;
+    }
+    
+    return total;
+  };
+
+  const subtotal = calculateSubtotal();
+  const total = calculateTotal();
+
+  const cakeFlavors = flavors.filter((f: any) => f.type === 'cake' && f.isActive);
+  const fillingFlavors = flavors.filter((f: any) => f.type === 'filling' && f.isActive);
+  const catalogProducts = products.filter((p: any) => p.isActive && p.location === 'store');
+
+  const addCake = () => {
+    const newCake: Partial<CustomCake> = {
+      portions: 15,
+      quantity: 1,
+      cakeFlavor: '',
+      secondCakeFlavor: '',
+      fillingFlavor: '',
+      secondFillingFlavor: '',
+      price: 0,
+      id: Date.now().toString()
+    };
+    setFormData({
+      ...formData,
+      customCakes: [...(formData.customCakes || []), newCake as CustomCake]
+    });
+  };
+
+  const removeCake = (index: number) => {
+    const updated = [...(formData.customCakes || [])];
+    updated.splice(index, 1);
+    setFormData({ ...formData, customCakes: updated });
+  };
+
+  const updateCake = (index: number, field: keyof CustomCake, value: any) => {
+    const updated = [...(formData.customCakes || [])];
+    updated[index] = { ...updated[index], [field]: value };
+    setFormData({ ...formData, customCakes: updated });
+  };
+
+  const addProduct = () => {
+    setFormData({
+      ...formData,
+      items: [...(formData.items || []), { productId: '', quantity: 1, product: {} as any, price: 0 }]
+    });
+  };
+
+  const removeProduct = (index: number) => {
+    const updated = [...(formData.items || [])];
+    updated.splice(index, 1);
+    setFormData({ ...formData, items: updated });
+  };
+
+  const updateProduct = (index: number, field: keyof OrderItem, value: any) => {
+    const updated = [...(formData.items || [])];
+    if (field === 'productId') {
+      const selectedProduct = catalogProducts.find(p => p.id === value);
+      if (selectedProduct) {
+        updated[index] = {
+          ...updated[index],
+          productId: value,
+          product: selectedProduct,
+          price: selectedProduct.basePrice
+        };
+      }
+    } else {
+      updated[index] = { ...updated[index], [field]: value };
+    }
+    setFormData({ ...formData, items: updated });
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    // Validaciones
+    if (!formData.customerName || !formData.customerPhone || !formData.pickupDate || !formData.pickupTime) {
+      toast.error('Por favor complete todos los campos requeridos');
+      return;
+    }
+
+    if (!selectedOptions.hasCake && !selectedOptions.hasProducts && !selectedOptions.hasSweetTable) {
+      toast.error('Debe seleccionar al menos un tipo de producto');
+      return;
+    }
+    
+    const submitData = {
+      ...formData,
+      total,
+      orderType: selectedOptions.hasCake && selectedOptions.hasProducts ? 'mixed' :
+                  selectedOptions.hasCake ? 'cake' :
+                  selectedOptions.hasProducts ? 'products' : 'sweet_table'
+    };
+    
+    onSubmit(submitData);
+  };
+
+  const updateFormField = (field: keyof typeof formData, value: any) => {
+    setFormData({ ...formData, [field]: value });
+  };
+
+  return (
+    <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6 px-1">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+        <div className="space-y-1.5 sm:space-y-2">
+          <Label className="text-sm">Nombre del cliente *</Label>
+          <Input 
+            placeholder="Nombre completo" 
+            required 
+            className="text-sm"
+            value={formData.customerName || ''}
+            onChange={(e) => updateFormField('customerName', e.target.value)}
+          />
+        </div>
+        <div className="space-y-1.5 sm:space-y-2">
+          <Label className="text-sm">Teléfono *</Label>
+          <Input 
+            placeholder="Número de teléfono" 
+            required 
+            className="text-sm"
+            value={formData.customerPhone || ''}
+            onChange={(e) => updateFormField('customerPhone', e.target.value)}
+          />
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+        <div className="space-y-1.5 sm:space-y-2">
+          <Label className="text-sm">Fecha de entrega *</Label>
+          <Input 
+            type="date" 
+            required 
+            className="text-sm"
+            min={new Date().toISOString().split('T')[0]}
+            value={formData.pickupDate instanceof Date ? format(formData.pickupDate, 'yyyy-MM-dd') : formData.pickupDate}
+            onChange={(e) => {
+              const [year, month, day] = e.target.value.split('-');
+              const localDate = new Date(Number(year), Number(month) - 1, Number(day));
+              updateFormField('pickupDate', localDate)
+            }}
+          />
+        </div>
+        <div className="space-y-1.5 sm:space-y-2">
+          <Label className="text-sm">Hora de entrega *</Label>
+          <Input 
+            type="time" 
+            required 
+            className="text-sm"
+            value={formData.pickupTime || ''}
+            onChange={(e) => updateFormField('pickupTime', e.target.value)}
+          />
+        </div>
+      </div>
+
+      <div className="space-y-3 border rounded-lg p-4 bg-muted/30">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <label className="flex items-center gap-2 sm:justify-self-center justify-self-start">
+            <div className="flex items-center gap-2 cursor-pointer group">
+              <div className="relative flex items-center">
+                <input
+                  type="checkbox"
+                  checked={selectedOptions.hasCake}
+                  onChange={(e) => {
+                    if (!e.target.checked) {
+                      setFormData({ ...formData, customCakes: [] });
+                    } else if ((formData.customCakes?.length || 0) === 0) {
+                      addCake();
+                    }
+                  }}
+                  className="sr-only peer"
+                  id="hasCake"
+                />
+                <div className="w-5 h-5 border-2 rounded-md border-muted-foreground/30 peer-checked:border-primary peer-checked:bg-primary transition-all duration-200 flex items-center justify-center group-hover:border-primary/50">
+                  <svg 
+                    className="w-3 h-3 text-primary-foreground opacity-0 peer-checked:opacity-100 transition-opacity duration-200" 
+                    fill="none" 
+                    viewBox="0 0 24 24" 
+                    stroke="currentColor"
+                  >
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                  </svg>
+                </div>
+              </div>
+              <label htmlFor="hasCake" className="text-sm font-medium cursor-pointer select-none group-hover:text-primary transition-colors">
+                Torta personalizada
+              </label>
+            </div>
+          </label>
+          
+          <label className="flex items-center gap-2 sm:justify-self-center justify-self-start">
+            <div className="relative flex items-center">
+              <input 
+                type="checkbox" 
+                checked={selectedOptions.hasProducts}
+                onChange={(e) => {
+                  if (!e.target.checked) {
+                    setFormData({ ...formData, items: [] });
+                  } else if ((formData.items?.length || 0) === 0) {
+                    addProduct();
+                  }
+                }}
+                className="sr-only peer"
+                id='hasItems'
+              />
+              <div className="w-5 h-5 border-2 rounded-md border-muted-foreground/30 peer-checked:border-primary peer-checked:bg-primary transition-all duration-200 flex items-center justify-center group-hover:border-primary/50">
+                <svg 
+                  className="w-3 h-3 text-primary-foreground opacity-0 peer-checked:opacity-100 transition-opacity duration-200" 
+                  fill="none" 
+                  viewBox="0 0 24 24" 
+                  stroke="currentColor"
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                </svg>
+              </div>
+            </div>
+            <span className="text-sm">Productos del catálogo</span>
+          </label>
+          
+          <label className="flex items-center gap-2 sm:justify-self-center justify-self-start">
+            <div className="relative flex items-center">
+              <input 
+                type="checkbox" 
+                checked={selectedOptions.hasSweetTable}
+                onChange={(e) => {
+                  if (!e.target.checked) {
+                    setFormData({ ...formData, sweetTableCombo: undefined });
+                  } else if (!formData.sweetTableCombo) {
+                    setFormData({ 
+                      ...formData, 
+                      sweetTableCombo: { 
+                        products: [], 
+                        totalQuantity: 0, 
+                        price: 0 
+                      } 
+                    });
+                  }
+                }}
+                className="sr-only peer"
+                id='hasSweetTable'
+              />
+              <div className="w-5 h-5 border-2 rounded-md border-muted-foreground/30 peer-checked:border-primary peer-checked:bg-primary transition-all duration-200 flex items-center justify-center group-hover:border-primary/50">
+                <svg 
+                  className="w-3 h-3 text-primary-foreground opacity-0 peer-checked:opacity-100 transition-opacity duration-200" 
+                  fill="none" 
+                  viewBox="0 0 24 24" 
+                  stroke="currentColor"
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                </svg>
+              </div>
+            </div>
+            <span className="text-sm">Mesa dulce</span>
+          </label>
+        </div>
+      </div>
+
+      {selectedOptions.hasCake && (
+        <div className="space-y-4 border rounded-lg p-4">
+          <div className="flex justify-between items-center">
+            <h3 className="font-semibold text-base">Tortas Personalizadas</h3>
+            <Button 
+              type="button" 
+              variant="outline" 
+              size="sm"
+              onClick={addCake}
+            >
+              <Plus className="h-4 w-4 mr-1" /> Agregar Torta
+            </Button>
+          </div>
+          
+          {(formData.customCakes || []).map((cake, index) => (
+            <div key={cake.id || index} className="border rounded-lg p-3 space-y-3 relative">
+              <div className="flex justify-between items-center">
+                <span className="font-medium text-sm">Torta #{index + 1}</span>
+                {(formData.customCakes?.length || 0) > 1 && (
+                  <Button 
+                    type="button" 
+                    variant="ghost" 
+                    size="sm"
+                    onClick={() => removeCake(index)}
+                    className="text-destructive"
+                  >
+                    <X className="h-4 w-4" />
+                  </Button>
+                )}
+              </div>
+              
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div className="space-y-1.5">
+                  <Label className="text-sm">Cantidad</Label>
+                  <Input 
+                    type="number" 
+                    min="1"
+                    value={cake.quantity || 1}
+                    onChange={(e) => updateCake(index, 'quantity', parseInt(e.target.value))}
+                    className="text-sm"
+                  />
+                </div>
+                <div className="space-y-1.5 sm:col-span-2">
+                  <Label className="text-sm">Porciones por torta</Label>
+                  <Select 
+                    value={cake.portions?.toString()}
+                    onValueChange={(v) => updateCake(index, 'portions', parseInt(v))}
+                  >
+                    <SelectTrigger className="text-sm">
+                      <SelectValue placeholder="Seleccionar" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {[10, 15, 20, 25, 30, 40, 50].map(p => (
+                        <SelectItem key={p} value={p.toString()}>{p} porciones</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div className="space-y-1.5">
+                  <Label className="text-sm">Forma (opcional)</Label>
+                  <Select 
+                    value={cake.shape}
+                    onValueChange={(v) => updateCake(index, 'shape', v)}
+                  >
+                    <SelectTrigger className="text-sm">
+                      <SelectValue placeholder="Seleccionar" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="round">Redonda</SelectItem>
+                      <SelectItem value="square">Cuadrada</SelectItem>
+                      <SelectItem value="rectangle">Rectangular</SelectItem>
+                      <SelectItem value="heart">Corazón</SelectItem>
+                      <SelectItem value="two-tier">Dos pisos</SelectItem>
+                      <SelectItem value="three-tier">Tres pisos</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+              
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div className="space-y-1.5">
+                  <Label className="text-sm">Sabor de torta *</Label>
+                  <Select 
+                    value={cake.cakeFlavor || undefined}
+                    onValueChange={(v) => updateCake(index, 'cakeFlavor', v)}
+                    required
+                  >
+                    <SelectTrigger className="text-sm">
+                      <SelectValue placeholder="Seleccionar" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {cakeFlavors.map((f: any) => (
+                        <SelectItem key={f.id} value={f.name}>{f.name}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-1.5">
+                  <Label className="text-sm">Sabor de relleno *</Label>
+                  <Select
+                    value={cake.fillingFlavor || undefined}
+                    onValueChange={(v) => updateCake(index, 'fillingFlavor', v)}
+                    required
+                  >
+                    <SelectTrigger className="text-sm">
+                      <SelectValue placeholder="Seleccionar" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {fillingFlavors.map((f: any) => (
+                        <SelectItem key={f.id} value={f.name}>{f.name}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div className="space-y-1.5">
+                  <Label className="text-sm">Segundo sabor de torta (opcional)</Label>
+                  <Select 
+                    value={cake.secondCakeFlavor || "none"}
+                    onValueChange={(v) => updateCake(index, 'secondCakeFlavor', v === "none" ? "" : v)}
+                  >
+                    <SelectTrigger className="text-sm">
+                      <SelectValue placeholder="Opcional" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="none">Ninguno</SelectItem>
+                      {cakeFlavors.map((f: any) => (
+                        <SelectItem key={f.id} value={f.name}>{f.name}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-1.5">
+                  <Label className="text-sm">Segundo sabor de relleno (opcional)</Label>
+                  <Select
+                    value={cake.secondFillingFlavor || "none"}
+                    onValueChange={(v) => updateCake(index, 'secondFillingFlavor', v === "none" ? "" : v)}
+                  >
+                    <SelectTrigger className="text-sm">
+                      <SelectValue placeholder="Opcional" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="none">Ninguno</SelectItem>
+                      {fillingFlavors.map((f: any) => (
+                        <SelectItem key={f.id} value={f.name}>{f.name}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              <div className="space-y-1.5">
+                <Label className="text-sm">Descripción del diseño</Label>
+                <Textarea 
+                  placeholder="Describe el diseño deseado..." 
+                  className="text-sm" 
+                  rows={2}
+                  value={cake.design || ''}
+                  onChange={(e) => updateCake(index, 'design', e.target.value)}
+                />
+              </div>
+
+              <div className="space-y-1.5">
+                <Label className="text-sm">Dedicatoria (opcional)</Label>
+                <Input 
+                  placeholder="Texto para la torta" 
+                  className="text-sm"
+                  value={cake.dedication || ''}
+                  onChange={(e) => updateCake(index, 'dedication', e.target.value)}
+                />
+              </div>
+
+              <div className="space-y-1.5">
+                <Label className="text-sm">Precio (Bs.) *</Label>
+                <Input 
+                  type="number"
+                  placeholder="0" 
+                  required
+                  className="text-sm"
+                  value={cake.price || ''}
+                  onChange={(e) => updateCake(index, 'price', parseFloat(e.target.value))}
+                />
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {selectedOptions.hasProducts && (
+        <div className="space-y-4 border rounded-lg p-4">
+          <div className="flex justify-between items-center">
+            <h3 className="font-semibold text-base">Productos del Catálogo</h3>
+            <Button 
+              type="button" 
+              variant="outline" 
+              size="sm"
+              onClick={addProduct}
+            >
+              <Plus className="h-4 w-4 mr-1" /> Agregar Producto
+            </Button>
+          </div>
+          
+          {(formData.items || []).map((item, index) => (
+            <div key={index} className="border rounded-lg p-3 space-y-3">
+              <div className="flex justify-between items-center">
+                <span className="font-medium text-sm">Producto #{index + 1}</span>
+                <Button 
+                  type="button" 
+                  variant="ghost" 
+                  size="sm"
+                  onClick={() => removeProduct(index)}
+                  className="text-destructive"
+                >
+                  <X className="h-4 w-4" />
+                </Button>
+              </div>
+              
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div className="space-y-1.5">
+                  <Label className="text-sm">Producto *</Label>
+                  <Select 
+                    value={item.productId}
+                    onValueChange={(v) => updateProduct(index, 'productId', v)}
+                  >
+                    <SelectTrigger className="text-sm">
+                      <SelectValue placeholder="Seleccionar producto" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {catalogProducts.map((p: any) => (
+                        <SelectItem key={p.id} value={p.id}>
+                          {p.name} - Bs. {p.basePrice}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-1.5">
+                  <Label className="text-sm">Cantidad *</Label>
+                  <Input 
+                    type="number" 
+                    min="1"
+                    required
+                    value={item.quantity}
+                    onChange={(e) => updateProduct(index, 'quantity', parseInt(e.target.value))}
+                    className="text-sm"
+                  />
+                </div>
+              </div>
+              
+              <div className="space-y-1.5">
+                <Label className="text-sm">Notas (opcional)</Label>
+                <Input 
+                  placeholder="Ej: Sin gluten, decoración especial..." 
+                  className="text-sm"
+                  value={item.notes || ''}
+                  onChange={(e) => updateProduct(index, 'notes', e.target.value)}
+                />
+              </div>
+            </div>
+          ))}
+          
+          {(formData.items || []).length === 0 && (
+            <p className="text-sm text-muted-foreground text-center py-4">
+              No hay productos agregados. Haz clic en "Agregar Producto" para comenzar.
+            </p>
+          )}
+        </div>
+      )}
+
+      {selectedOptions.hasSweetTable && (
+        <div className="space-y-4 border rounded-lg p-4">
+          <h3 className="font-semibold text-base">Mesa Dulce</h3>
+          
+          <div className="space-y-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div className="space-y-1.5">
+                <Label className="text-sm">Cantidad de postres</Label>
+                <Input 
+                  type="number" 
+                  placeholder="Ej: 75" 
+                  className="text-sm"
+                  value={formData.sweetTableCombo?.totalQuantity || ''}
+                  onChange={(e) => {
+                    const value = parseInt(e.target.value);
+                    setFormData({
+                      ...formData,
+                      sweetTableCombo: {
+                        ...formData.sweetTableCombo!,
+                        totalQuantity: value,
+                        products: formData.sweetTableCombo?.products || []
+                      }
+                    });
+                  }}
+                />
+              </div>
+              
+              <div className="space-y-1.5">
+                <Label className="text-sm">Precio total mesa dulce (Bs.) *</Label>
+                <Input 
+                  type="number" 
+                  placeholder="0" 
+                  required
+                  className="text-sm"
+                  value={formData.sweetTableCombo?.price || ''}
+                  onChange={(e) => {
+                    const value = parseFloat(e.target.value);
+                    setFormData({
+                      ...formData,
+                      sweetTableCombo: {
+                        ...formData.sweetTableCombo!,
+                        price: value,
+                        products: formData.sweetTableCombo?.products || []
+                      }
+                    });
+                  }}
+                />
+              </div>
+            </div>
+            
+            <div className="space-y-1.5">
+              <Label className="text-sm">Detalles adicionales</Label>
+              <Textarea 
+                placeholder="Tipos de postres, presentación, colores..." 
+                className="text-sm" 
+                rows={2}
+                value={formData.sweetTableCombo?.details || ''}
+                onChange={(e) => {
+                  setFormData({
+                    ...formData,
+                    sweetTableCombo: {
+                      ...formData.sweetTableCombo!,
+                      details: e.target.value,
+                      products: formData.sweetTableCombo?.products || []
+                    }
+                  });
+                }}
+              />
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Delivery y Pago */}
+      <div className="space-y-3 sm:space-y-4 border-t pt-3 sm:pt-4">
+        <div className="space-y-1.5">
+          <Label className="text-sm">Dirección de envío (opcional)</Label>
+          <Input 
+            placeholder="Dirección o link de ubicación" 
+            className="text-sm"
+            value={formData.deliveryAddress || ''}
+            onChange={(e) => updateFormField('deliveryAddress', e.target.value)}
+          />
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div className="space-y-1.5">
+            <Label className="text-sm">Costo de envío</Label>
+            <Input 
+              type="number" 
+              placeholder="0" 
+              className="text-sm"
+              value={formData.deliveryCost || 0}
+              onChange={(e) => updateFormField('deliveryCost', parseFloat(e.target.value))}
+            />
+          </div>
+          <div className="space-y-1.5">
+            <Label className="text-sm">Garantía (opcional)</Label>
+            <Input 
+              placeholder="Descripción de garantía" 
+              className="text-sm"
+              value={formData.guarantee?.items || ''}
+              onChange={(e) => updateFormField('guarantee', { amount: formData.guarantee?.amount || 0, items: e.target.value })}
+            />
+          </div>
+        </div>
+      </div>
+
+      {/* Payment */}
+      <div className="space-y-3 sm:space-y-4 border-t pt-3 sm:pt-4">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <div className="space-y-1.5">
+            <Label className="text-sm">Adelanto *</Label>
+            <Input 
+              type="number" 
+              placeholder="0" 
+              required
+              className="text-sm"
+              value={formData.deposit || 0}
+              onChange={(e) => updateFormField('deposit', parseFloat(e.target.value))}
+            />
+          </div>
+          <div className="space-y-1.5">
+            <Label className="text-sm">Método de pago *</Label>
+            <Select 
+              value={formData.depositMethod || 'cash'}
+              onValueChange={(v: any) => updateFormField('depositMethod', v)}
+            >
+              <SelectTrigger className="text-sm">
+                <SelectValue placeholder="Seleccionar" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="cash">Efectivo</SelectItem>
+                <SelectItem value="qr">QR</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="space-y-1.5">
+            <Label className="text-sm">Descuento</Label>
+            <Input 
+              type="number" 
+              placeholder="0" 
+              className="text-sm"
+              value={formData.discount || 0}
+              onChange={(e) => updateFormField('discount', parseFloat(e.target.value))}
+            />
+          </div>
+        </div>
+      </div>
+
+      <div className="space-y-1.5">
+        <Label className="text-sm">Notas adicionales</Label>
+        <Textarea 
+          placeholder="Observaciones del pedido..." 
+          className="text-sm" 
+          rows={3}
+          value={formData.notes || ''}
+          onChange={(e) => updateFormField('notes', e.target.value)}
+        />
+      </div>
+
+      <div className="space-y-3 bg-muted/20 rounded-lg p-4 border">
+        <div className="flex justify-between items-center py-2">
+          <span className="font-medium text-sm">Subtotal:</span>
+          <span className="text-lg font-semibold text-primary">
+            Bs. {subtotal.toFixed(2)}
+          </span>
+        </div>
+        
+        {formData.discount > 0 && (
+          <div className="flex justify-between items-center py-2 text-sm text-muted-foreground">
+            <span>Descuento:</span>
+            <span className="text-destructive">- Bs. {formData.discount.toFixed(2)}</span>
+          </div>
+        )}
+        
+        {formData.deliveryCost > 0 && (
+          <div className="flex justify-between items-center py-2 text-sm text-muted-foreground">
+            <span>Costo de envío:</span>
+            <span>+ Bs. {formData.deliveryCost.toFixed(2)}</span>
+          </div>
+        )}
+        
+        <div className="border-t pt-3 mt-2">
+          <div className="flex justify-between items-center">
+            <span className="text-base font-bold">Total a pagar:</span>
+            <span className="text-2xl font-bold text-primary">
+              Bs. {total.toFixed(2)}
+            </span>
+          </div>
+        </div>
+        
+        {formData.deposit > 0 && (
+          <div className="flex justify-between items-center py-2 text-sm bg-muted p-2 rounded mt-2">
+            <span className="font-medium">Adelanto:</span>
+            <span className="text-green-600 font-medium">
+              Bs. {formData.deposit.toFixed(2)}
+            </span>
+          </div>
+        )}
+        
+        {formData.deposit > 0 && total > 0 && (
+          <div className="flex justify-between items-center py-2 text-sm font-medium">
+            <span>Saldo pendiente:</span>
+            <span className="text-lg font-semibold text-orange-600">
+              Bs. {(total - formData.deposit).toFixed(2)}
+            </span>
+          </div>
+        )}
+      </div>
+
+      <div className="flex flex-col sm:flex-row justify-end gap-2 sm:gap-3 pt-2">
+        <Button type="button" variant="outline" onClick={onClose} className="w-full sm:w-auto order-2 sm:order-1">
+          Cancelar
+        </Button>
+        <Button type="submit" className="w-full sm:w-auto order-1 sm:order-2">
+          {isEditing ? 'Actualizar Pedido' : 'Crear Pedido'}
+        </Button>
+      </div>
+    </form>
+  );
+}
