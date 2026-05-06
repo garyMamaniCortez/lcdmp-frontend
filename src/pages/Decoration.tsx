@@ -284,10 +284,10 @@ export default function Decoration() {
                 {selectedOrder.customCakes.map((cake, i) => (
                   <div key={i} className="p-3 sm:p-4 bg-muted/50 rounded-lg space-y-2">
                     <h4 className="font-medium text-sm sm:text-base">
-                      {cake.cakeFlavor} - {cake.portions} porciones
+                      {cake.cakeFlavor}{cake.secondCakeFlavor ? `/${cake.secondCakeFlavor}` : ""} - {cake.portions} porciones
                     </h4>
                     {cake.shape && <p className="text-xs sm:text-sm">Forma: {cake.shape}</p>}
-                    <p className="text-xs sm:text-sm">Relleno: {cake.fillingFlavors.join(', ')}</p>
+                    <p className="text-xs sm:text-sm">Relleno: {cake.fillingFlavor} {cake.secondFillingFlavor ? `/ ${cake.secondFillingFlavor}` : ''}</p>
                     {cake.design && (
                       <div className="p-2 sm:p-3 bg-background rounded border">
                         <p className="text-xs sm:text-sm font-medium">Diseño requerido:</p>
@@ -296,6 +296,16 @@ export default function Decoration() {
                     )}
                     {cake.dedication && (
                       <p className="text-xs sm:text-sm">Dedicatoria: "{cake.dedication}"</p>
+                    )}
+                  </div>
+                ))}
+                {selectedOrder.items.map((item, i) => (
+                  <div key={i} className="p-3 sm:p-4 bg-muted/50 rounded-lg space-y-2">
+                    <h4 className="font-medium text-sm sm:text-base">
+                      {item.productName} - {item.quantity} Unidades
+                    </h4>
+                    {item.notes && (
+                      <p className="text-xs sm:text-sm">Notas: "{item.notes}"</p>
                     )}
                   </div>
                 ))}
