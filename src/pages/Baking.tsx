@@ -284,7 +284,7 @@ export default function Baking({ bakingApi = defaultBakingApi }: BakingProps) {
                             <div className="space-y-2 mt-2">
                               {order.customCakes.map((cake, i) => (
                                 <div key={i} className="text-xs bg-muted/50 p-2 rounded">
-                                  <p className="font-medium">{cake.portions} porciones - {cake.cakeFlavor}</p>
+                                  <p className="font-medium">{cake.portions} porciones - {cake.cakeFlavor}{cake.secondCakeFlavor ? `/${cake.secondCakeFlavor}` : ""}</p>
                                   {cake.shape && <p className="text-muted-foreground mt-0.5">{cake.shape}</p>}
                                 </div>
                               ))}
@@ -344,7 +344,7 @@ export default function Baking({ bakingApi = defaultBakingApi }: BakingProps) {
                           <div className="mt-2 space-y-1">
                             {order.customCakes.map((cake, i) => (
                               <p key={i} className="text-sm">
-                                <strong>{cake.portions} porciones</strong> - {cake.cakeFlavor}
+                                <strong>{cake.portions} porciones</strong> - {cake.cakeFlavor}{cake.secondCakeFlavor ? `/${cake.secondCakeFlavor}` : ""}
                                 {cake.shape && ` (${cake.shape})`}
                               </p>
                             ))}
