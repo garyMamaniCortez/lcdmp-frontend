@@ -228,6 +228,11 @@ export default function Assembly({ assemblyApi = defaultAssemblyApi }: AssemblyP
                                   </p>
                                 </div>
                               ))}
+                              {order.items.map((item, i) => (
+                                <div key={i} className="text-xs bg-muted/50 p-2 rounded">
+                                  <p className="font-medium">{item.productName} - {item.quantity} Unidades</p>
+                                </div>
+                              ))}
                             </div>
 
                             <div className="flex items-center justify-between mt-3 pt-2 border-t">
