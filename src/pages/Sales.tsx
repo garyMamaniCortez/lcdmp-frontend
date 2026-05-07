@@ -115,7 +115,7 @@ export default function Sales({ api = defaultSalesApi }: SalesProps) {
       const updatedProducts = await api.getProducts(debouncedSearchTerm);
       setProducts(updatedProducts);
     } catch (error) {
-      toast.error('Error al procesar la venta');
+      toast.error(error.toString());
       console.error(error);
     }
   };
