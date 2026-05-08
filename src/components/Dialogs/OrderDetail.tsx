@@ -1,11 +1,25 @@
 import { getOrderType } from "@/pages/Orders";
 import { Order } from "@/types";
 import { format } from 'date-fns';
-import { Badge } from "lucide-react";
+import { Badge, Truck } from "lucide-react";
 import { statusConfig } from '@/types/consts';
 import { es } from "date-fns/locale";
+import { Button } from "../ui/button";
+import { PaymentMethod } from '../../types/index';
+import { useState } from "react";
 
-export default function OrderDetail({ order }: { order: Order }) {
+interface OrderDetailProps {
+  order: Order;
+  onDeliver?: (orderId: string, paymentMethod: PaymentMethod) => void;
+}
+
+export default function OrderDetail({ order, onDeliver }: OrderDetailProps) {
+  const [ paymentMethod, setPaymentMethod ]= useState<PaymentMethod>('cash');
+  const handleDeliver = () => {
+    if (onDeliver) {
+      onDeliver(order.id, paymentMethod);
+    }
+  };
   return (
     <div className="space-y-3 sm:space-y-4 px-1">
       {/* Información del cliente y entrega */}
@@ -23,6 +37,18 @@ export default function OrderDetail({ order }: { order: Order }) {
           <p className="text-xs sm:text-sm">{order.pickupTime}</p>
         </div>
       </div>
+
+      {order.status !== 'delivered' && onDeliver && (
+        <div className="border-t pt-3 sm:pt-4">
+          <Button 
+            onClick={handleDeliver}
+            className="w-full"
+          >
+            <Truck className="h-4 w-4 mr-2" />
+            Marcar como Entregado
+          </Button>
+        </div>
+      )}
 
       {/* Información del pedido */}
       <div className="border-t pt-3 sm:pt-4">
