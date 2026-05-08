@@ -248,7 +248,7 @@ export default function Orders({ ordersApi = defaultOrdersApi }: OrdersProps) {
 
         {/* Stats Cards */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-4 px-4 sm:px-0">
-          {stats.slice(0, 4).map(({ status, label, color, icon: Icon, count }) => (
+          {stats.slice(1, 5).map(({ status, label, color, icon: Icon, count }) => (
             <Card 
               key={status} 
               className={`cursor-pointer hover:shadow-md transition-shadow active:scale-95 sm:active:scale-100 ${
