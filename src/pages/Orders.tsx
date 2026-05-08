@@ -417,6 +417,11 @@ export default function Orders({ ordersApi = defaultOrdersApi }: OrdersProps) {
                             Mesa dulce ({order.sweetTableCombo.totalQuantity} postres)
                           </p>
                         )}
+                        {order.items.length > 0 && (
+                          <p className="truncate">
+                            {order.items.map((item,i) => `${item.quantity} ${item.productName}`).join(', ')}
+                          </p>
+                        )}
                       </div>
                       
                       <div className="flex justify-between items-center pt-2 border-t text-sm">
