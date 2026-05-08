@@ -16,7 +16,7 @@ import { toast } from 'sonner';
 import { statusConfig } from '@/types/consts';
 import { IOrdersApi, defaultOrdersApi } from '@/api/OrdersApi';
 import { useDebounce } from '@/hooks/useDebounce';
-import { OrderType } from '../types/index';
+import { OrderType, PaymentMethod } from '../types/index';
 import OrderForm from '@/components/Forms/OrderForm';
 import OrderDetail from '@/components/Dialogs/OrderDetail';
 
@@ -171,9 +171,9 @@ export default function Orders({ ordersApi = defaultOrdersApi }: OrdersProps) {
     }
   };
 
-  const handleUpdateStatus = async (id: string, status: OrderStatus) => {
+  const handleUpdateStatus = async (id: string, status: OrderStatus, paymentMethod?: PaymentMethod) => {
     try {
-      const updatedOrder = await ordersApi.updateOrderStatus(id, status);
+      const updatedOrder = await ordersApi.updateOrderStatus(id, status, paymentMethod);
       await loadOrders();
       toast.success(`Estado actualizado a ${statusConfig[status].label}`);
     } catch (error: any) {
@@ -193,6 +193,11 @@ export default function Orders({ ordersApi = defaultOrdersApi }: OrdersProps) {
       console.error('Error deleting order:', error);
       toast.error(error.message || 'Error al eliminar el pedido');
     }
+  };
+
+  const handleDeliverOrder = async (orderId: string, paymentMethod: PaymentMethod) => {
+    setSelectedOrder(null);
+    await handleUpdateStatus(orderId, 'delivered', paymentMethod)
   };
 
   const resetFilters = () => {
@@ -566,7 +571,10 @@ export default function Orders({ ordersApi = defaultOrdersApi }: OrdersProps) {
             <DialogHeader>
               <DialogTitle className="text-lg sm:text-xl">Pedido #{selectedOrder?.orderNumber}</DialogTitle>
             </DialogHeader>
-            {selectedOrder && <OrderDetail order={selectedOrder} />}
+            {selectedOrder && <OrderDetail 
+              order={selectedOrder} 
+              onDeliver={handleDeliverOrder}
+            />}
           </DialogContent>
         </Dialog>
 

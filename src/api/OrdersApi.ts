@@ -10,7 +10,8 @@ import type {
   CreateOrderData,
   UpdateOrderData,
   Flavor,
-  Product
+  Product,
+  PaymentMethod
 } from '@/types';
 
 export interface IOrdersApi {
@@ -19,7 +20,7 @@ export interface IOrdersApi {
   createOrder(orderData: CreateOrderData): Promise<Order>;
   updateOrder(id: string, data: UpdateOrderData): Promise<Order>;
   deleteOrder(id: string): Promise<void>;
-  updateOrderStatus(id: string, status: OrderStatus): Promise<Order>;
+  updateOrderStatus(id: string, status: OrderStatus, paymentMethod?: PaymentMethod): Promise<Order>;
   getFlavors(): Promise<Flavor[]>;
   getProducts(searchTerm?: string): Promise<Product[]>;
 }
@@ -135,7 +136,7 @@ export class MockOrdersApi implements IOrdersApi {
     console.log('Mock order deleted:', id);
   }
 
-  async updateOrderStatus(id: string, status: OrderStatus): Promise<Order> {
+  async updateOrderStatus(id: string, status: OrderStatus, paymentMethod?: PaymentMethod): Promise<Order> {
     await this.simulateNetworkDelay();
     
     const index = this.orders.findIndex(o => o.id === id);
@@ -335,9 +336,9 @@ export class OrdersApi implements IOrdersApi {
     }
   }
 
-  async updateOrderStatus(id: string, status: OrderStatus): Promise<Order> {
+  async updateOrderStatus(id: string, status: OrderStatus, paymentMethod?: PaymentMethod): Promise<Order> {
     try {
-      const response = await api.patch(`/orders/${id}/status`, { status });
+      const response = await api.patch(`/orders/${id}/status`, { status, paymentMethod });
       
       if (!response.data.success) {
         throw new Error(response.data.message || 'Error al actualizar el estado');
