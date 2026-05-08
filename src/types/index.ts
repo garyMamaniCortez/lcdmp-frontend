@@ -269,6 +269,7 @@ export interface CreateOrderData {
   couponCode?: string;
   notes?: string;
   guarantee?: OrderGuarantee;
+  paymentMethod?: 'cash' | 'qr' | 'both';
 }
 
 export interface UpdateOrderData {
@@ -287,6 +288,7 @@ export interface UpdateOrderData {
   discount?: number;
   notes?: string;
   guarantee?: OrderGuarantee;
+  paymentMethod?: 'cash' | 'qr' | 'both';
 }
 
 export interface OrderFilters {

@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Plus, X } from 'lucide-react';
+import { Banknote, Plus, QrCode, X } from 'lucide-react';
 import { format } from 'date-fns';
 import { CreateOrderData, CustomCake, Order, UpdateOrderData, OrderItem } from '@/types';
 import { toast } from 'sonner';
@@ -35,6 +35,7 @@ export default function OrderForm({ initialData, onSubmit, onClose, products, fl
         depositMethod: initialData.depositMethod,
         discount: initialData.discount,
         notes: initialData.notes,
+        paymentMethod: 'cash',
       };
     }
     return {
@@ -48,6 +49,7 @@ export default function OrderForm({ initialData, onSubmit, onClose, products, fl
       deposit: 0,
       discount: 0,
       notes: '',
+      paymentMethod: 'cash',
     };
   });
 
@@ -736,21 +738,6 @@ export default function OrderForm({ initialData, onSubmit, onClose, products, fl
             />
           </div>
           <div className="space-y-1.5">
-            <Label className="text-sm">Método de pago *</Label>
-            <Select 
-              value={formData.depositMethod || 'cash'}
-              onValueChange={(v: any) => updateFormField('depositMethod', v)}
-            >
-              <SelectTrigger className="text-sm">
-                <SelectValue placeholder="Seleccionar" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="cash">Efectivo</SelectItem>
-                <SelectItem value="qr">QR</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-          <div className="space-y-1.5">
             <Label className="text-sm">Descuento</Label>
             <Input 
               type="number" 
@@ -820,6 +807,32 @@ export default function OrderForm({ initialData, onSubmit, onClose, products, fl
             <span className="text-lg font-semibold text-orange-600">
               Bs. {(total - formData.deposit).toFixed(2)}
             </span>
+          </div>
+        )}
+
+        {formData.deposit > 0 && (
+          <div className="space-y-2">
+            <label className="text-xs sm:text-sm font-medium">Método de pago</label>
+            <div className="grid grid-cols-2 gap-2 sm:gap-3">
+              <Button 
+                type="button"
+                variant={formData.paymentMethod === 'cash' ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => updateFormField('paymentMethod', 'cash')}
+              >
+                <Banknote className="h-4 w-4 sm:h-6 sm:w-6" />
+                <span className="text-xs sm:text-sm">Efectivo</span>
+              </Button>
+              <Button 
+                type="button"
+                variant={formData.paymentMethod === 'qr' ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => updateFormField('paymentMethod', 'qr')}
+              >
+                <QrCode className="h-4 w-4 sm:h-6 sm:w-6" />
+                <span className="text-xs sm:text-sm">QR</span>
+              </Button>
+            </div>
           </div>
         )}
       </div>
