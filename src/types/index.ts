@@ -318,6 +318,26 @@ export interface Transaction {
   createdBy: string;
 }
 
+// Interfaz para el resumen diario
+export interface DailySummary {
+  cashIncome: number;        // Ingresos en efectivo
+  qrIncome: number;         // Ingresos por QR
+  totalIncome: number;      // Ingresos totales del día
+  totalExpenses: number;    // Gastos del día
+  openingBalance: number;   // Saldo de apertura
+  currentCashBalance: number; // Saldo actual en efectivo
+  currentQrBalance: number;   // Saldo actual en QR
+  transactions: Transaction[]; // Transacciones del día
+}
+
+// Interfaz para cierre de caja
+export interface ClosingData {
+  countedCash: number;      // Monto contado en caja
+  openingBalanceTomorrow: number; // Saldo inicial para mañana
+  notes?: string;           // Notas opcionales
+  actualCashDifference: number; // Diferencia entre lo esperado y lo contado
+}
+
 // Branch Types
 export interface Branch {
   id: string;
