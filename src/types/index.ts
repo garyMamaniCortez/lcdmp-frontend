@@ -63,13 +63,20 @@ export interface CreateUser {
 }
 
 // Inventory Types
+export interface Category {
+  id: string;
+  name: string;
+  type: 'raw_material' | 'baked_product' | 'all';
+  icon?: string;
+}
+
 export interface RawMaterial {
   id: string;
   name: string;
   unit: string;
   quantity: number;
   minStock: number;
-  category: 'flour' | 'dairy' | 'sugar' | 'eggs' | 'flavoring' | 'decoration' | 'other';
+  category: string;
   lastUpdated: Date;
 }
 

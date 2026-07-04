@@ -1,4 +1,5 @@
 import { AlertCircle, CheckCircle, ChefHat, Clock, Hammer, Palette, Truck } from "lucide-react";
+import { Package, Wheat, Milk, Egg } from 'lucide-react';
 import { OrderStatus, UserRole } from ".";
 
 export const statusConfig: Record<OrderStatus, { label: string; color: string; icon: React.ElementType }> = {
@@ -36,3 +37,31 @@ export const categories = [
     { value: 'bread', label: 'Pan' },
     { value: 'special', label: 'Especiales' },
   ];
+
+export const categoryIcons: Record<string, React.ElementType> = {
+  flour: Wheat,
+  dairy: Milk,
+  eggs: Egg,
+  sugar: Package,
+  flavoring: Package,
+  decoration: Package,
+  other: Package,
+};
+
+export const categoryLabels: Record<string, string> = {
+  flour: 'Harinas',
+  dairy: 'Lácteos',
+  eggs: 'Huevos',
+  sugar: 'Azúcares',
+  flavoring: 'Saborizantes',
+  decoration: 'Decoración',
+  other: 'Otros',
+};
+
+export const productTypeLabels: Record<string, string> = {
+  cake_base: 'Base de torta',
+  cupcake: 'Cupcakes',
+  cookie: 'Galletas',
+  bread: 'Pan',
+  pastry: 'Pastelería',
+};
