@@ -19,6 +19,7 @@ export interface OrderFormProps {
 }
 
 export default function OrderForm({ initialData, onSubmit, onClose, products, flavors, isEditing = false }: OrderFormProps) {
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState<CreateOrderData | UpdateOrderData>(() => {
     if (initialData) {
       return {
@@ -158,10 +159,9 @@ export default function OrderForm({ initialData, onSubmit, onClose, products, fl
     setFormData({ ...formData, items: updated });
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    // Validaciones
+
     if (!formData.customerName || !formData.customerPhone || !formData.pickupDate || !formData.pickupTime) {
       toast.error('Por favor complete todos los campos requeridos');
       return;
@@ -171,6 +171,9 @@ export default function OrderForm({ initialData, onSubmit, onClose, products, fl
       toast.error('Debe seleccionar al menos un tipo de producto');
       return;
     }
+
+    if (isSubmitting) return;
+    setIsSubmitting(true);
     
     const submitData = {
       ...formData,
@@ -180,7 +183,13 @@ export default function OrderForm({ initialData, onSubmit, onClose, products, fl
                   selectedOptions.hasProducts ? 'products' : 'sweet_table'
     };
     
-    onSubmit(submitData);
+    try {
+      await onSubmit(submitData);
+    } catch (error) {
+      console.error('Error al enviar el pedido:', error);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const updateFormField = (field: keyof typeof formData, value: any) => {
@@ -840,11 +849,27 @@ export default function OrderForm({ initialData, onSubmit, onClose, products, fl
       </div>
 
       <div className="flex flex-col sm:flex-row justify-end gap-2 sm:gap-3 pt-2">
-        <Button type="button" variant="outline" onClick={onClose} className="w-full sm:w-auto order-2 sm:order-1">
+        <Button 
+          type="button" 
+          variant="outline" 
+          onClick={onClose} 
+          className="w-full sm:w-auto order-2 sm:order-1"
+          disabled={isSubmitting}
+        >
           Cancelar
         </Button>
-        <Button type="submit" className="w-full sm:w-auto order-1 sm:order-2">
-          {isEditing ? 'Actualizar Pedido' : 'Crear Pedido'}
+        <Button 
+          type="submit" 
+          className="w-full sm:w-auto order-1 sm:order-2"
+          disabled={isSubmitting}
+        >
+          {isSubmitting ? (
+            <>
+              {isEditing ? 'Actualizando...' : 'Creando...'}
+            </>
+          ) : (
+            isEditing ? 'Actualizar Pedido' : 'Crear Pedido'
+          )}
         </Button>
       </div>
     </form>
