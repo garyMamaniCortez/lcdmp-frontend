@@ -318,15 +318,6 @@ export default function Decoration({ decorationApi = defaultDecorationApi }: Dec
                               </>
                             )}
                           </div>
-
-                          {/* Precio total (si hay múltiples tortas) */}
-                          {order.customCakes && order.customCakes.length > 1 && (
-                            <div className="flex justify-end mt-3 pt-2 border-t">
-                              <span className="font-bold text-primary">
-                                Total: Bs. {order.customCakes.reduce((sum, cake) => sum + cake.price, 0)}
-                              </span>
-                            </div>
-                          )}
                         </div>
 
                         <div className="text-right">
