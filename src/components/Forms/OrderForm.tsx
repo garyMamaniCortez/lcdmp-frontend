@@ -711,15 +711,17 @@ export default function OrderForm({ initialData, onSubmit, onClose, products, fl
               onChange={(e) => updateFormField('deliveryCost', parseFloat(e.target.value))}
             />
           </div>
-          <div className="space-y-1.5">
-            <Label className="text-sm">Garantía (opcional)</Label>
-            <Input 
-              placeholder="Descripción de garantía" 
-              className="text-sm"
-              value={formData.guarantee?.items || ''}
-              onChange={(e) => updateFormField('guarantee', { amount: formData.guarantee?.amount || 0, items: e.target.value })}
-            />
-          </div>
+          {/*
+            <div className="space-y-1.5">
+              <Label className="text-sm">Garantía (opcional)</Label>
+              <Input 
+                placeholder="Descripción de garantía" 
+                className="text-sm"
+                value={formData.guarantee?.items || ''}
+                onChange={(e) => updateFormField('guarantee', { amount: formData.guarantee?.amount || 0, items: e.target.value })}
+              />
+            </div>
+          */}
         </div>
       </div>
 
