@@ -230,9 +230,21 @@ export default function Assembly({ assemblyApi = defaultAssemblyApi }: AssemblyP
                               ))}
                               {order.items.map((item, i) => (
                                 <div key={i} className="text-xs bg-muted/50 p-2 rounded">
-                                  <p className="font-medium">{item.productName} - {item.quantity} Unidades</p>
+                                  <p className="font-medium"><strong>{item.productName} - {item.quantity} Unidades</strong></p>
+                                  {item.notes && (
+                                    <>
+                                      <p className="font-medium">📝 Notas del producto:</p>
+                                      <p className="text-sm whitespace-pre-wrap">{item.notes}</p>
+                                    </>
+                                  )}
                                 </div>
                               ))}
+                              {order.notes && (
+                                <div key={order.id} className="text-xs bg-muted/50 p-2 rounded">
+                                  <p className="font-medium">📝 Notas del pedido:</p>
+                                  <p className="text-sm whitespace-pre-wrap">{order.notes}</p>
+                                </div>
+                              )}
                             </div>
 
                             <div className="flex items-center justify-between mt-3 pt-2 border-t">
@@ -282,10 +294,24 @@ export default function Assembly({ assemblyApi = defaultAssemblyApi }: AssemblyP
                               </p>
                             ))}
                             {order.items.map((item, i) => (
-                              <p key={i} className="text-sm">
-                                <strong>{item.productName} </strong> - {item.quantity} Unidades
-                              </p>
+                              <div key={i}>
+                                <p className="text-sm">
+                                  <strong>{item.productName} - {item.quantity} Unidades</strong>
+                                </p>
+                                {item.notes && (
+                                  <>
+                                    <p className="text-sm">📝 Notas del producto:</p>
+                                    <p className="text-sm whitespace-pre-wrap">{item.notes}</p>
+                                  </>
+                                )}
+                              </div>
                             ))}
+                            {order.notes && (
+                              <>
+                                <p className="text-sm">📝 Notas del pedido:</p>
+                                <p className="text-sm whitespace-pre-wrap">{order.notes}</p>
+                              </>
+                            )}
                           </div>
                         </div>
 

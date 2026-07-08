@@ -222,10 +222,22 @@ export default function Decoration({ decorationApi = defaultDecorationApi }: Dec
                               {order.items?.map((item, i) => (
                                 <div key={i} className="text-xs bg-muted/50 p-2 rounded">
                                   <p className="font-medium">
-                                    {item.productName} - {item.quantity} Unidades
+                                    <strong>{item.productName} - {item.quantity} Unidades</strong>
                                   </p>
+                                  {item.notes && (
+                                    <>
+                                      <p className="font-medium">📝 Notas del producto:</p>
+                                      <p className="text-sm whitespace-pre-wrap">{item.notes}</p>
+                                    </>
+                                  )}
                                 </div>
                               ))}
+                              {order.notes && (
+                                <div key={order.id} className="text-xs bg-muted/50 p-2 rounded">
+                                  <p className="font-medium">📝 Notas del pedido:</p>
+                                  <p className="text-sm whitespace-pre-wrap">{order.notes}</p>
+                                </div>
+                              )}
                             </div>
 
                             {/* Footer con tiempo y botones */}
@@ -289,10 +301,22 @@ export default function Decoration({ decorationApi = defaultDecorationApi }: Dec
                             {order.items?.map((item, i) => (
                               <div key={i} className="space-y-1">
                                 <p className="text-sm">
-                                  <strong>{item.productName}</strong> - {item.quantity} Unidades
+                                  <strong>{item.productName} - {item.quantity} Unidades</strong>
                                 </p>
+                                {item.notes && (
+                                  <>
+                                    <p className="text-sm">📝 Notas del producto:</p>
+                                    <p className="text-sm whitespace-pre-wrap">{item.notes}</p>
+                                  </>
+                                )}
                               </div>
                             ))}
+                            {order.notes && (
+                              <>
+                                <p className="text-sm">📝 Notas del pedido:</p>
+                                <p className="text-sm whitespace-pre-wrap">{order.notes}</p>
+                              </>
+                            )}
                           </div>
 
                           {/* Precio total (si hay múltiples tortas) */}
