@@ -1,10 +1,10 @@
 import api from '@/api/api';
 import type { 
   RawMaterial, 
-  BakedProduct, 
-  ProductStatus,
+  BakedProduct,
   Category 
 } from '@/types';
+import { inventoryCategories } from '@/types/consts';
 
 export interface IInventoryApi {
   getRawMaterials(filters?: RawMaterialFilters): Promise<RawMaterial[]>;
@@ -595,18 +595,7 @@ export class InventoryApi implements IInventoryApi {
   // ============================================
 
   async getCategories(): Promise<Category[]> {
-    try {
-      const response = await api.get('/inventory/categories');
-      
-      if (!response.data.success) {
-        throw new Error(response.data.message || 'Error al obtener categorías');
-      }
-      
-      return response.data.data as Category[];
-    } catch (error: any) {
-      console.error('Error en getCategories:', error);
-      throw new Error(error.response?.data?.message || error.message || 'Error de conexión');
-    }
+    return inventoryCategories;
   }
 
   async getLowStockItems(): Promise<LowStockSummary> {
@@ -628,4 +617,4 @@ export class InventoryApi implements IInventoryApi {
   }
 }
 
-export const defaultInventoryApi = new MockInventoryApi();
+export const defaultInventoryApi = new InventoryApi();

@@ -1,6 +1,7 @@
 import { AlertCircle, CheckCircle, ChefHat, Clock, Hammer, Palette, Truck } from "lucide-react";
 import { Package, Wheat, Milk, Egg } from 'lucide-react';
-import { OrderStatus, UserRole } from ".";
+import { Category, OrderStatus, UserRole } from ".";
+import Inventory from '../pages/Inventory';
 
 export const statusConfig: Record<OrderStatus, { label: string; color: string; icon: React.ElementType }> = {
   pending: { label: 'Pendiente', color: 'bg-yellow-100 text-yellow-800', icon: Clock },
@@ -65,3 +66,13 @@ export const productTypeLabels: Record<string, string> = {
   bread: 'Pan',
   pastry: 'Pastelería',
 };
+
+export const inventoryCategories: Category[] = [
+  { id: 'flour', name: 'Harinas', type: 'raw_material' },
+  { id: 'dairy', name: 'Lácteos', type: 'raw_material' },
+  { id: 'eggs', name: 'Huevos', type: 'raw_material' },
+  { id: 'sugar', name: 'Azúcares', type: 'raw_material' },
+  { id: 'flavoring', name: 'Saborizantes', type: 'raw_material' },
+  { id: 'decoration', name: 'Decoración', type: 'raw_material' },
+  { id: 'other', name: 'Otros', type: 'raw_material' }
+];
