@@ -422,12 +422,12 @@ export default function OrderForm({ initialData, onSubmit, onClose, products, fl
                       <SelectValue placeholder="Seleccionar" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="round">Redonda</SelectItem>
-                      <SelectItem value="square">Cuadrada</SelectItem>
-                      <SelectItem value="rectangle">Rectangular</SelectItem>
-                      <SelectItem value="heart">Corazón</SelectItem>
-                      <SelectItem value="two-tier">Dos pisos</SelectItem>
-                      <SelectItem value="three-tier">Tres pisos</SelectItem>
+                      <SelectItem value="redonda">Redonda</SelectItem>
+                      <SelectItem value="cuadrada">Cuadrada</SelectItem>
+                      <SelectItem value="rectangular">Rectangular</SelectItem>
+                      <SelectItem value="corazon">Corazón</SelectItem>
+                      <SelectItem value="dos-pisos">Dos pisos</SelectItem>
+                      <SelectItem value="tres-pisos">Tres pisos</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
