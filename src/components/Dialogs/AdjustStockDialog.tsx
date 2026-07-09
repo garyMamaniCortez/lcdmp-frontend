@@ -51,7 +51,7 @@ export function AdjustStockDialog({
 
   const getFinalStock = () => {
     switch (operation) {
-      case 'add': return currentStock + quantity;
+      case 'add': return Number(currentStock) + Number(quantity);
       case 'subtract': return currentStock - quantity;
       case 'set': return quantity;
     }
