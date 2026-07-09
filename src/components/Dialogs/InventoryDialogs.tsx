@@ -9,8 +9,8 @@ interface InventoryDialogsProps {
   dialogType: 'raw' | 'baked';
   editingItem: RawMaterial | BakedProduct | null;
   categories: Category[];
-  onSaveRaw: (data: any) => void;
-  onSaveBaked: (data: any) => void;
+  onSaveRaw: (data: any, update: boolean) => void;
+  onSaveBaked: (data: any, update: boolean) => void;
 }
 
 export function InventoryDialogs({ 

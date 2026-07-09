@@ -9,7 +9,7 @@ interface RawMaterialFormProps {
   initialData?: RawMaterial;
   categories: Category[];
   onClose: () => void;
-  onSave: (data: any) => void;
+  onSave: (data: any, update: boolean) => void;
 }
 
 const unitOptions = [
@@ -22,6 +22,7 @@ const unitOptions = [
 
 export function RawMaterialForm({ initialData, categories, onClose, onSave }: RawMaterialFormProps) {
   const [formData, setFormData] = useState({
+    id: initialData?.id || null,
     name: initialData?.name || '',
     category: initialData?.category || '',
     unit: initialData?.unit || 'kg',
@@ -31,7 +32,7 @@ export function RawMaterialForm({ initialData, categories, onClose, onSave }: Ra
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    onSave(formData);
+    onSave(formData, initialData ? true : false);
   };
 
   return (

@@ -51,10 +51,6 @@ export default function Inventory({
   const [showFilters, setShowFilters] = useState(false);
   const [editingItem, setEditingItem] = useState<RawMaterial | BakedProduct | null>(null);
 
-  // ============================================
-  // FUNCIONES DE CARGA - Clean Code
-  // ============================================
-
   const loadRawMaterials = useCallback(async () => {
     try {
       setLoading(prev => ({ ...prev, raw: true }));
@@ -144,11 +140,19 @@ export default function Inventory({
     toast.info('Filtros restablecidos');
   };
 
-  const handleCreateRawMaterial = async (data: any) => {
+  const handleCreateRawMaterial = async (data: any, update: boolean) => {
     try {
-      const newMaterial = await inventoryApi.createRawMaterial(data);
-      setRawMaterials(prev => [...prev, newMaterial]);
-      toast.success('Materia prima creada exitosamente');
+      if(update) {
+        const updatedMaterial = await inventoryApi.updateRawMaterial(data.id, data);
+        setRawMaterials(prev => prev.map(item => 
+          item.id === updatedMaterial.id ? updatedMaterial : item
+        ));
+        toast.success('Materia prima actualizada exitosamente');
+      } else {
+        const newMaterial = await inventoryApi.createRawMaterial(data);
+        setRawMaterials(prev => [...prev, newMaterial]);
+        toast.success('Materia prima creada exitosamente');
+      }
       setIsDialogOpen(false);
     } catch (error) {
       console.error('Error creating raw material:', error);
@@ -156,11 +160,19 @@ export default function Inventory({
     }
   };
 
-  const handleCreateBakedProduct = async (data: any) => {
+  const handleCreateBakedProduct = async (data: any, update: boolean) => {
     try {
-      const newProduct = await inventoryApi.createBakedProduct(data);
-      setBakedProducts(prev => [...prev, newProduct]);
-      toast.success('Producto horneado creado exitosamente');
+      if(update) {
+        const updatedMaterial = await inventoryApi.updateBakedProduct(data.id, data);
+        setBakedProducts(prev => prev.map(item => 
+          item.id === updatedMaterial.id ? updatedMaterial : item
+        ));
+        toast.success('Producto horneado actualizado exitosamente');
+      } else {
+        const newProduct = await inventoryApi.createBakedProduct(data);
+        setBakedProducts(prev => [...prev, newProduct]);
+        toast.success('Producto horneado creado exitosamente');
+      }
       setIsDialogOpen(false);
     } catch (error) {
       console.error('Error creating baked product:', error);

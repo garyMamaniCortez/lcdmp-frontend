@@ -8,7 +8,7 @@ import type { BakedProduct } from '@/types';
 interface BakedProductFormProps {
   initialData?: BakedProduct;
   onClose: () => void;
-  onSave: (data: any) => void;
+  onSave: (data: any, update: boolean) => void;
 }
 
 // Definir el tipo específico para los tipos de producto
@@ -22,16 +22,9 @@ const productTypes: { value: ProductType; label: string }[] = [
   { value: 'pastry', label: 'Pastelería' },
 ];
 
-interface FormData {
-  name: string;
-  type: ProductType;
-  quantity: number;
-  minStock: number;
-  expiresAt: string;
-}
-
 export function BakedProductForm({ initialData, onClose, onSave }: BakedProductFormProps) {
-  const [formData, setFormData] = useState<FormData>({
+  const [formData, setFormData] = useState({
+    id: initialData?.id || null,
     name: initialData?.name || '',
     type: (initialData?.type as ProductType) || 'cake_base',
     quantity: initialData?.quantity || 0,
@@ -44,7 +37,7 @@ export function BakedProductForm({ initialData, onClose, onSave }: BakedProductF
     onSave({
       ...formData,
       expiresAt: formData.expiresAt ? new Date(formData.expiresAt) : undefined
-    });
+    }, initialData ? true : false);
   };
 
   // Helper para actualizar el formulario con tipos seguros
@@ -64,7 +57,7 @@ export function BakedProductForm({ initialData, onClose, onSave }: BakedProductF
           required 
           className="text-sm"
           value={formData.name}
-          onChange={(e) => updateFormData('name', e.target.value)}
+          onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value}))}
         />
       </div>
       
@@ -72,7 +65,7 @@ export function BakedProductForm({ initialData, onClose, onSave }: BakedProductF
         <Label className="text-sm">Tipo de Producto *</Label>
         <Select 
           value={formData.type}
-          onValueChange={(value: ProductType) => updateFormData('type', value)}
+          onValueChange={(value: ProductType) => setFormData(prev => ({ ...prev, type: value}))}
         >
           <SelectTrigger className="text-sm">
             <SelectValue placeholder="Seleccionar tipo" />
@@ -95,7 +88,7 @@ export function BakedProductForm({ initialData, onClose, onSave }: BakedProductF
             placeholder="0" 
             className="text-sm"
             value={formData.quantity}
-            onChange={(e) => updateFormData('quantity', Number(e.target.value))}
+            onChange={(e) => setFormData(prev => ({ ...prev, quantity: Number(e.target.value)}))}
           />
         </div>
         <div className="space-y-1.5">
@@ -105,7 +98,7 @@ export function BakedProductForm({ initialData, onClose, onSave }: BakedProductF
             placeholder="0" 
             className="text-sm"
             value={formData.minStock}
-            onChange={(e) => updateFormData('minStock', Number(e.target.value))}
+            onChange={(e) => setFormData(prev => ({ ...prev, minStock: Number(e.target.value)}))}
           />
         </div>
       </div>
@@ -116,7 +109,7 @@ export function BakedProductForm({ initialData, onClose, onSave }: BakedProductF
           type="date" 
           className="text-sm"
           value={formData.expiresAt}
-          onChange={(e) => updateFormData('expiresAt', e.target.value)}
+          onChange={(e) => setFormData(prev => ({ ...prev, expiresAt: e.target.value}))}
         />
       </div>
       
