@@ -64,7 +64,7 @@ export default function Dashboard() {
           <h1 className="font-display text-2xl sm:text-3xl font-bold text-foreground">
             ¡Buen día, {user?.name.split(' ')[0]}!
           </h1>
-          <p className="text-sm sm:text-base text-muted-foreground mt-1">
+          <p className="text-sm sm:text-base  mt-1">
             Aquí tienes el resumen de hoy
           </p>
         </div>
@@ -74,14 +74,14 @@ export default function Dashboard() {
           {hasRole('seller') && (
             <Card className="mx-4 sm:mx-0">
               <CardHeader className="flex flex-row items-center justify-between pb-2 px-4 py-3 sm:px-6">
-                <CardTitle className="text-xs sm:text-sm font-medium text-muted-foreground">
+                <CardTitle className="text-xs sm:text-sm font-medium ">
                   Ventas de Hoy
                 </CardTitle>
                 <TrendingUp className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-success" />
               </CardHeader>
               <CardContent className="px-4 pb-4 sm:px-6">
                 <div className="text-xl sm:text-2xl font-bold">Bs. {stats.todaySales.toLocaleString()}</div>
-                <p className="text-xs text-muted-foreground mt-1">
+                <p className="text-xs  mt-1">
                   {stats.yesterdayComparation} vs. ayer
                 </p>
               </CardContent>
@@ -90,14 +90,14 @@ export default function Dashboard() {
 
           <Card className="mx-4 sm:mx-0">
             <CardHeader className="flex flex-row items-center justify-between pb-2 px-4 py-3 sm:px-6">
-              <CardTitle className="text-xs sm:text-sm font-medium text-muted-foreground">
+              <CardTitle className="text-xs sm:text-sm font-medium ">
                 Pedidos Pendientes
               </CardTitle>
               <Clock className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-warning" />
             </CardHeader>
             <CardContent className="px-4 pb-4 sm:px-6">
               <div className="text-xl sm:text-2xl font-bold">{stats.orders.pending}</div>
-              <p className="text-xs text-muted-foreground mt-1">
+              <p className="text-xs  mt-1">
                 Para hoy y mañana
               </p>
             </CardContent>
@@ -105,14 +105,14 @@ export default function Dashboard() {
 
           <Card className="mx-4 sm:mx-0">
             <CardHeader className="flex flex-row items-center justify-between pb-2 px-4 py-3 sm:px-6">
-              <CardTitle className="text-xs sm:text-sm font-medium text-muted-foreground">
+              <CardTitle className="text-xs sm:text-sm font-medium ">
                 En Producción
               </CardTitle>
               <Cake className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-primary" />
             </CardHeader>
             <CardContent className="px-4 pb-4 sm:px-6">
               <div className="text-xl sm:text-2xl font-bold">{stats.orders.inProduction}</div>
-              <p className="text-xs text-muted-foreground mt-1">
+              <p className="text-xs  mt-1">
                 Horneando, armando o decorando
               </p>
             </CardContent>
@@ -121,14 +121,14 @@ export default function Dashboard() {
           {hasRole('delivery') && (
             <Card className="mx-4 sm:mx-0">
               <CardHeader className="flex flex-row items-center justify-between pb-2 px-4 py-3 sm:px-6">
-                <CardTitle className="text-xs sm:text-sm font-medium text-muted-foreground">
+                <CardTitle className="text-xs sm:text-sm font-medium ">
                   Listos para Envío
                 </CardTitle>
                 <Truck className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-info" />
               </CardHeader>
               <CardContent className="px-4 pb-4 sm:px-6">
                 <div className="text-xl sm:text-2xl font-bold">{stats.orders.readyForDelivery}</div>
-                <p className="text-xs text-muted-foreground mt-1">
+                <p className="text-xs  mt-1">
                   Esperando delivery
                 </p>
               </CardContent>
@@ -138,14 +138,14 @@ export default function Dashboard() {
           {hasRole('admin') && (
             <Card className="mx-4 sm:mx-0">
               <CardHeader className="flex flex-row items-center justify-between pb-2 px-4 py-3 sm:px-6">
-                <CardTitle className="text-xs sm:text-sm font-medium text-muted-foreground">
+                <CardTitle className="text-xs sm:text-sm font-medium ">
                   Stock Bajo
                 </CardTitle>
                 <AlertTriangle className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-destructive" />
               </CardHeader>
               <CardContent className="px-4 pb-4 sm:px-6">
                 <div className="text-xl sm:text-2xl font-bold">{stats.lowStock}</div>
-                <p className="text-xs text-muted-foreground mt-1">
+                <p className="text-xs  mt-1">
                   Productos por debajo del mínimo
                 </p>
               </CardContent>
@@ -154,14 +154,14 @@ export default function Dashboard() {
 
           <Card className="mx-4 sm:mx-0">
             <CardHeader className="flex flex-row items-center justify-between pb-2 px-4 py-3 sm:px-6">
-              <CardTitle className="text-xs sm:text-sm font-medium text-muted-foreground">
+              <CardTitle className="text-xs sm:text-sm font-medium ">
                 Completados Hoy
               </CardTitle>
               <CheckCircle className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-success" />
             </CardHeader>
             <CardContent className="px-4 pb-4 sm:px-6">
               <div className="text-xl sm:text-2xl font-bold">{stats.orders.completedToday}</div>
-              <p className="text-xs text-muted-foreground mt-1">
+              <p className="text-xs  mt-1">
                 Pedidos entregados
               </p>
             </CardContent>
@@ -187,14 +187,14 @@ export default function Dashboard() {
                     <div className={`w-2 h-2 rounded-full ${statusColors[order.status]} flex-shrink-0`} />
                     <div className="min-w-0 flex-1">
                       <p className="font-medium text-sm sm:text-base truncate">{order.product}</p>
-                      <p className="text-xs sm:text-sm text-muted-foreground truncate">{order.customer}</p>
+                      <p className="text-xs sm:text-sm  truncate">{order.customer}</p>
                     </div>
                   </div>
                   <div className="flex items-center justify-between sm:justify-end gap-2 sm:gap-4 ml-5 sm:ml-0">
                     <span className={`text-xs px-2 py-1 rounded-full ${statusColors[order.status]} text-white whitespace-nowrap`}>
                       {statusLabels[order.status]}
                     </span>
-                    <span className="text-xs sm:text-sm text-muted-foreground font-medium">
+                    <span className="text-xs sm:text-sm  font-medium">
                       {order.time}
                     </span>
                   </div>

@@ -49,7 +49,7 @@ export function FiltersSection({
         <div className={`${showFilters ? 'block' : 'hidden'} sm:block space-y-3`}>
           <div className="flex flex-col sm:flex-row gap-3">
             <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 " />
               <Input 
                 placeholder="Buscar materias primas..." 
                 className="pl-10 w-full text-sm sm:text-base"
@@ -87,7 +87,7 @@ export function FiltersSection({
 
           {/* Active filters indicator */}
           {(searchTerm || selectedCategory !== 'all') && (
-            <div className="flex items-center gap-2 text-xs text-muted-foreground flex-wrap">
+            <div className="flex items-center gap-2 text-xs  flex-wrap">
               <span>Filtros activos:</span>
               {searchTerm && (
                 <Badge variant="secondary" className="text-xs">

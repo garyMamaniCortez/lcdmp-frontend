@@ -49,12 +49,12 @@ export default function OrderDetail({ order, onDeliver }: OrderDetailProps) {
         {/* Información del cliente y entrega */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
           <div>
-            <p className="text-xs sm:text-sm text-muted-foreground">Cliente</p>
+            <p className="text-xs sm:text-sm ">Cliente</p>
             <p className="font-medium text-sm sm:text-base">{order.customerName}</p>
             <p className="text-xs sm:text-sm">{order.customerPhone}</p>
           </div>
           <div>
-            <p className="text-xs sm:text-sm text-muted-foreground">Entrega</p>
+            <p className="text-xs sm:text-sm ">Entrega</p>
             <p className="font-medium text-sm sm:text-base">
               {format(order.pickupDate, "dd 'de' MMMM 'de' yyyy", { locale: es })}
             </p>
@@ -78,11 +78,11 @@ export default function OrderDetail({ order, onDeliver }: OrderDetailProps) {
         <div className="border-t pt-3 sm:pt-4">
         <div className="grid grid-cols-2 gap-3">
           <div>
-            <p className="text-xs text-muted-foreground">Tipo de pedido</p>
+            <p className="text-xs ">Tipo de pedido</p>
             <p className="text-sm font-medium capitalize">{getOrderType(order.orderType)}</p>
           </div>
           <div>
-            <p className="text-xs text-muted-foreground">Fecha de creación</p>
+            <p className="text-xs ">Fecha de creación</p>
             <p className="text-sm">{format(order.createdAt, "dd/MM/yyyy HH:mm")}</p>
           </div>
         </div>
@@ -112,7 +112,7 @@ export default function OrderDetail({ order, onDeliver }: OrderDetailProps) {
                 <p className="font-bold text-primary">Bs. {cake.price * cake.quantity}</p>
               </div>
               {cake.shape && (
-                <p className="text-sm text-muted-foreground">Forma: {cake.shape}</p>
+                <p className="text-sm ">Forma: {cake.shape}</p>
               )}
               {cake.design && (
                 <p className="text-sm mt-1">🎨 Diseño: {cake.design}</p>
@@ -121,7 +121,7 @@ export default function OrderDetail({ order, onDeliver }: OrderDetailProps) {
                 <p className="text-sm italic">💝 "{cake.dedication}"</p>
               )}
               {cake.referenceImages && cake.referenceImages.length > 0 && (
-                <p className="text-sm text-muted-foreground mt-1">
+                <p className="text-sm  mt-1">
                   📸 {cake.referenceImages.length} imágenes de referencia
                 </p>
               )}
@@ -142,7 +142,7 @@ export default function OrderDetail({ order, onDeliver }: OrderDetailProps) {
                     {item.quantity} x {item.product?.name || item.productName}
                   </p>
                   {item.notes && (
-                    <p className="text-xs text-muted-foreground mt-1">📝 {item.notes}</p>
+                    <p className="text-xs  mt-1">📝 {item.notes}</p>
                   )}
                 </div>
                 <p className="font-medium">Bs. {item.price * item.quantity}</p>
@@ -246,7 +246,7 @@ export default function OrderDetail({ order, onDeliver }: OrderDetailProps) {
               </span>
             </div>
             {order.depositMethod && (
-              <div className="flex justify-between text-sm text-muted-foreground">
+              <div className="flex justify-between text-sm ">
                 <span>Método de pago del adelanto:</span>
                 <span className="uppercase">{order.depositMethod}</span>
               </div>
@@ -259,7 +259,7 @@ export default function OrderDetail({ order, onDeliver }: OrderDetailProps) {
           <Badge className={statusConfig[order.status].color}>
             {statusConfig[order.status].label}
           </Badge>
-          <p className="text-xs text-muted-foreground">
+          <p className="text-xs ">
             Creado por: {order.createdByUsername}
           </p>
         </div>

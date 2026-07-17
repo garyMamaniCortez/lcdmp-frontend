@@ -48,7 +48,7 @@ export function MobileCard({ children, className, onClick }: MobileCardProps) {
 export function MobileCardRow({ label, children, className }: MobileCardRowProps) {
   return (
     <div className={cn("flex justify-between items-start gap-2", className)}>
-      <span className="text-sm text-muted-foreground shrink-0">{label}</span>
+      <span className="text-sm  shrink-0">{label}</span>
       <div className="text-right">{children}</div>
     </div>
   );

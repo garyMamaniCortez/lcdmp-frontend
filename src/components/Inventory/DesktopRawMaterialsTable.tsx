@@ -69,7 +69,7 @@ export function DesktopRawMaterialsTable({
             <TableBody>
               {materials.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
+                  <TableCell colSpan={6} className="text-center py-8 ">
                     No se encontraron materias primas
                   </TableCell>
                 </TableRow>
@@ -84,7 +84,7 @@ export function DesktopRawMaterialsTable({
                       <TableCell>
                         <div className="flex items-center gap-3 min-w-[200px]">
                           <div className="h-10 w-10 bg-muted rounded-lg flex items-center justify-center shrink-0">
-                            <Icon className="h-5 w-5 text-muted-foreground" />
+                            <Icon className="h-5 w-5 " />
                           </div>
                           <div className="min-w-0">
                             <div className="flex items-center gap-2">
@@ -93,7 +93,7 @@ export function DesktopRawMaterialsTable({
                                 <AlertTriangle className="h-4 w-4 text-destructive shrink-0" />
                               )}
                             </div>
-                            <p className="text-sm text-muted-foreground">{item.unit}</p>
+                            <p className="text-sm ">{item.unit}</p>
                           </div>
                         </div>
                       </TableCell>
@@ -113,12 +113,12 @@ export function DesktopRawMaterialsTable({
                             value={Math.min(stockPercentage, 100)} 
                             className={`h-2 ${isLowStock ? '[&>div]:bg-destructive' : ''}`}
                           />
-                          <p className="text-xs text-muted-foreground">
+                          <p className="text-xs ">
                             Mín: {item.minStock} {item.unit}
                           </p>
                         </div>
                       </TableCell>
-                      <TableCell className="text-muted-foreground whitespace-nowrap">
+                      <TableCell className=" whitespace-nowrap">
                         {format(item.lastUpdated, 'dd MMM HH:mm', { locale: es })}
                       </TableCell>
                       <TableCell className="text-right whitespace-nowrap">

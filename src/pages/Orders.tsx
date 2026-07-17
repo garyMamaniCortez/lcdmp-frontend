@@ -225,7 +225,7 @@ export default function Orders({ ordersApi = defaultOrdersApi }: OrdersProps) {
             <h1 className="text-2xl sm:text-3xl font-display font-bold text-foreground">
               Pedidos
             </h1>
-            <p className="text-sm sm:text-base text-muted-foreground">
+            <p className="text-sm sm:text-base ">
               Gestión de pedidos de tortas y combos
             </p>
           </div>
@@ -267,7 +267,7 @@ export default function Orders({ ordersApi = defaultOrdersApi }: OrdersProps) {
                 </div>
                 <div className="min-w-0">
                   <p className="text-lg sm:text-2xl font-bold">{count}</p>
-                  <p className="text-xs sm:text-sm text-muted-foreground truncate">{label}</p>
+                  <p className="text-xs sm:text-sm  truncate">{label}</p>
                 </div>
               </CardContent>
             </Card>
@@ -292,7 +292,7 @@ export default function Orders({ ordersApi = defaultOrdersApi }: OrdersProps) {
             <div className={`${showFilters ? 'block' : 'hidden'} sm:block space-y-3 sm:space-y-0`}>
               <div className="flex flex-col sm:flex-row gap-3">
                 <div className="relative flex-1">
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 " />
                   <Input 
                     placeholder="Buscar por nombre o teléfono..." 
                     className="pl-10 w-full text-sm sm:text-base"
@@ -325,7 +325,7 @@ export default function Orders({ ordersApi = defaultOrdersApi }: OrdersProps) {
               </div>
 
               {(searchTerm || selectedStatus !== 'all') && (
-                <div className="flex items-center gap-2 text-xs text-muted-foreground mt-2 sm:hidden">
+                <div className="flex items-center gap-2 text-xs  mt-2 sm:hidden">
                   <span>Filtros activos:</span>
                   {searchTerm && (
                     <Badge variant="secondary" className="text-xs">
@@ -353,7 +353,7 @@ export default function Orders({ ordersApi = defaultOrdersApi }: OrdersProps) {
             {sortedOrders.length === 0 ? (
               <Card>
                 <CardContent className="p-8 text-center">
-                  <p className="text-muted-foreground">No se encontraron pedidos</p>
+                  <p className="">No se encontraron pedidos</p>
                 </CardContent>
               </Card>
             ) : (
@@ -403,22 +403,22 @@ export default function Orders({ ordersApi = defaultOrdersApi }: OrdersProps) {
                       <div className="flex justify-between items-start gap-2">
                         <div className="min-w-0 flex-1">
                           <p className="font-medium text-sm truncate">{order.customerName}</p>
-                          <p className="text-xs text-muted-foreground">{order.customerPhone}</p>
+                          <p className="text-xs ">{order.customerPhone}</p>
                         </div>
                         <div className="text-right flex-shrink-0">
                           <p className="font-medium text-sm">{format(order.pickupDate, 'dd MMM', { locale: es })}</p>
-                          <p className="text-xs text-muted-foreground">{order.pickupTime}</p>
+                          <p className="text-xs ">{order.pickupTime}</p>
                         </div>
                       </div>
                       
-                      <div className="text-xs bg-muted/50 p-2 rounded space-y-1">
+                      <div className="text-sm bg-muted/50 p-2 rounded space-y-1">
                         {order.customCakes.length > 0 && (
                           <p className="truncate">
                             {order.customCakes.map(c => `${c.portions}p ${c.cakeFlavor}`).join(', ')}
                           </p>
                         )}
                         {order.sweetTableCombo && (
-                          <p className="text-muted-foreground truncate">
+                          <p className=" truncate">
                             Mesa dulce ({order.sweetTableCombo.totalQuantity} postres)
                           </p>
                         )}
@@ -431,11 +431,11 @@ export default function Orders({ ordersApi = defaultOrdersApi }: OrdersProps) {
                       
                       <div className="flex justify-between items-center pt-2 border-t text-sm">
                         <div>
-                          <p className="text-xs text-muted-foreground">Adelanto</p>
+                          <p className="text-xs ">Adelanto</p>
                           <p className="font-medium">Bs. {order.deposit}</p>
                         </div>
                         <div className="text-right">
-                          <p className="text-xs text-muted-foreground">Total</p>
+                          <p className="text-xs ">Total</p>
                           <p className="font-bold text-primary">Bs. {order.total}</p>
                         </div>
                       </div>
@@ -463,7 +463,7 @@ export default function Orders({ ordersApi = defaultOrdersApi }: OrdersProps) {
                 <TableBody>
                   {sortedOrders.length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
+                      <TableCell colSpan={7} className="text-center py-8 ">
                         No se encontraron pedidos
                       </TableCell>
                     </TableRow>
@@ -477,13 +477,13 @@ export default function Orders({ ordersApi = defaultOrdersApi }: OrdersProps) {
                           <TableCell>
                             <div>
                               <p className="font-medium">{order.customerName}</p>
-                              <p className="text-sm text-muted-foreground">{order.customerPhone}</p>
+                              <p className="text-sm ">{order.customerPhone}</p>
                             </div>
                           </TableCell>
                           <TableCell>
                             <div>
                               <p className="font-medium">{format(order.pickupDate, 'dd MMM', { locale: es })}</p>
-                              <p className="text-sm text-muted-foreground">{order.pickupTime}</p>
+                              <p className="text-sm ">{order.pickupTime}</p>
                             </div>
                           </TableCell>
                           <TableCell>
@@ -494,7 +494,7 @@ export default function Orders({ ordersApi = defaultOrdersApi }: OrdersProps) {
                                 </p>
                               )}
                               {order.sweetTableCombo && (
-                                <p className="text-sm text-muted-foreground">
+                                <p className="text-sm ">
                                   Mesa dulce ({order.sweetTableCombo.totalQuantity} postres)
                                 </p>
                               )}
@@ -507,7 +507,7 @@ export default function Orders({ ordersApi = defaultOrdersApi }: OrdersProps) {
                           </TableCell>
                           <TableCell>
                             <p className="font-bold">Bs. {order.total}</p>
-                            <p className="text-sm text-muted-foreground">
+                            <p className="text-sm ">
                               Adelanto: Bs. {order.deposit}
                             </p>
                           </TableCell>

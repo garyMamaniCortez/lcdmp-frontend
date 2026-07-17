@@ -58,7 +58,7 @@ export function MobileRawMaterialsList({
     return (
       <Card className="mx-4">
         <CardContent className="p-8 text-center">
-          <p className="text-muted-foreground">No se encontraron materias primas</p>
+          <p className="">No se encontraron materias primas</p>
         </CardContent>
       </Card>
     );
@@ -78,7 +78,7 @@ export function MobileRawMaterialsList({
                 <div className="flex items-start justify-between">
                   <div className="flex items-center gap-3">
                     <div className="h-10 w-10 bg-muted rounded-lg flex items-center justify-center shrink-0">
-                      <Icon className="h-5 w-5 text-muted-foreground" />
+                      <Icon className="h-5 w-5 " />
                     </div>
                     <div>
                       <p className="font-medium text-sm">{item.name}</p>
@@ -94,7 +94,7 @@ export function MobileRawMaterialsList({
                 
                 <div className="space-y-2">
                   <div className="flex justify-between text-sm">
-                    <span className="text-muted-foreground">Cantidad:</span>
+                    <span className="">Cantidad:</span>
                     <span className={isLowStock ? 'text-destructive font-bold' : 'font-medium'}>
                       {item.quantity} {item.unit}
                     </span>
@@ -106,13 +106,13 @@ export function MobileRawMaterialsList({
                       className={`h-2 ${isLowStock ? '[&>div]:bg-destructive' : ''}`}
                     />
                     <div className="flex justify-between text-xs">
-                      <span className="text-muted-foreground">Stock mínimo:</span>
+                      <span className="">Stock mínimo:</span>
                       <span className="font-medium">{item.minStock} {item.unit}</span>
                     </div>
                   </div>
                   
                   <div className="flex justify-between items-center pt-2 border-t">
-                    <span className="text-xs text-muted-foreground">
+                    <span className="text-xs ">
                       {format(item.lastUpdated, 'dd MMM HH:mm', { locale: es })}
                     </span>
                     <div className="flex gap-2">

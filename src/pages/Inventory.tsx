@@ -274,7 +274,7 @@ export default function Inventory({
                 <CardContent className="p-3 sm:p-4">
                   <div className="flex flex-col sm:flex-row gap-3">
                     <div className="relative flex-1">
-                      <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                      <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 " />
                       <Input 
                         placeholder="Buscar productos horneados..." 
                         className="pl-10 w-full text-sm sm:text-base"
@@ -342,7 +342,7 @@ function InventoryHeader({
         <h1 className="text-2xl sm:text-3xl font-display font-bold text-foreground">
           Inventario
         </h1>
-        <p className="text-sm sm:text-base text-muted-foreground">
+        <p className="text-sm sm:text-base ">
           Control de materias primas y productos horneados
         </p>
       </div>

@@ -120,7 +120,7 @@ export default function Decoration({ decorationApi = defaultDecorationApi }: Dec
           <h1 className="text-2xl sm:text-3xl font-display font-bold text-foreground">
             Decoración
           </h1>
-          <p className="text-sm sm:text-base text-muted-foreground mt-1">
+          <p className="text-sm sm:text-base  mt-1">
             Diseño y decoración de tortas
           </p>
         </div>
@@ -134,7 +134,7 @@ export default function Decoration({ decorationApi = defaultDecorationApi }: Dec
               </div>
               <div className="min-w-0">
                 <p className="text-lg sm:text-2xl font-bold">{decorationOrders.length}</p>
-                <p className="text-xs sm:text-sm text-muted-foreground truncate">Pendientes de decorar</p>
+                <p className="text-xs sm:text-sm  truncate">Pendientes de decorar</p>
               </div>
             </CardContent>
           </Card>
@@ -146,7 +146,7 @@ export default function Decoration({ decorationApi = defaultDecorationApi }: Dec
               </div>
               <div className="min-w-0">
                 <p className="text-lg sm:text-2xl font-bold">{getUrgentOrders().length}</p>
-                <p className="text-xs sm:text-sm text-muted-foreground truncate">Urgentes (&lt;6h)</p>
+                <p className="text-xs sm:text-sm  truncate">Urgentes (&lt;6h)</p>
               </div>
             </CardContent>
           </Card>
@@ -158,7 +158,7 @@ export default function Decoration({ decorationApi = defaultDecorationApi }: Dec
               </div>
               <div className="min-w-0">
                 <p className="text-lg sm:text-2xl font-bold">{getCompletedOrdersCount()}</p>
-                <p className="text-xs sm:text-sm text-muted-foreground truncate">Completados hoy</p>
+                <p className="text-xs sm:text-sm  truncate">Completados hoy</p>
               </div>
             </CardContent>
           </Card>
@@ -173,7 +173,7 @@ export default function Decoration({ decorationApi = defaultDecorationApi }: Dec
 
             <CardContent className="px-4 pb-4 sm:px-6">
               {decorationOrders.length === 0 ? (
-                <p className="text-center text-muted-foreground py-8 text-sm">
+                <p className="text-center  py-8 text-sm">
                   No hay pedidos pendientes de decorar
                 </p>
               ) : (
@@ -198,29 +198,23 @@ export default function Decoration({ decorationApi = defaultDecorationApi }: Dec
                             <div className="flex items-start justify-between mb-2">
                               <div>
                                 <div className="flex items-center gap-2 flex-wrap">
-                                  <h3 className="font-medium text-sm">Pedido #{order.orderNumber}</h3>
-                                  <Badge variant="secondary" className="text-xs">
-                                    Decorando
-                                  </Badge>
+                                  <span className="font-bold text-primary text-sm">#{order.orderNumber}</span>
                                 </div>
-                                <p className="text-xs text-muted-foreground mt-1">{order.customerName}</p>
+                                <p className="text-sm  mt-1">{order.customerName}</p>
                               </div>
-                              <Badge className={`${urgency.color} text-white text-xs`}>
-                                {urgency.label}
-                              </Badge>
                             </div>
 
                             <div className="space-y-2 mt-2">
                               {order.customCakes?.map((cake, i) => (
-                                <div key={i} className="text-xs bg-muted/50 p-2 rounded">
+                                <div key={i} className="text-sm bg-muted/50 p-2 rounded">
                                   <p className="font-medium">{getCakeDescription(cake)}</p>
                                   {cake.design && 
-                                    <p className="text-muted-foreground mt-0.5">🎨 {cake.design.substring(0, 50)}</p>
+                                    <p className=" mt-0.5">🎨 {cake.design.substring(0, 50)}</p>
                                   }
                                 </div>
                               ))}
                               {order.items?.map((item, i) => (
-                                <div key={i} className="text-xs bg-muted/50 p-2 rounded">
+                                <div key={i} className="text-sm bg-muted/50 p-2 rounded">
                                   <p className="font-medium">
                                     <strong>{item.productName} - {item.quantity} Unidades</strong>
                                   </p>
@@ -242,7 +236,7 @@ export default function Decoration({ decorationApi = defaultDecorationApi }: Dec
 
                             {/* Footer con tiempo y botones */}
                             <div className="flex items-center justify-between mt-3 pt-2 border-t">
-                              <div className="flex items-center gap-1 text-muted-foreground">
+                              <div className="flex items-center gap-1 ">
                                 <Clock className="h-3.5 w-3.5" />
                                 <span className="text-xs">
                                   {hoursUntil > 0 ? `${hoursUntil}h` : 'Atrasado'}
@@ -276,22 +270,21 @@ export default function Decoration({ decorationApi = defaultDecorationApi }: Dec
                         
                         <div className="flex-1">
                           <div className="flex items-center gap-2 mb-1 flex-wrap">
-                            <h3 className="font-medium">Pedido #{order.orderNumber}</h3>
-                            <Badge variant="secondary">Decorando</Badge>
+                            <span className="font-medium">#{order.orderNumber}</span>
                             <Badge className={urgency.color}>{urgency.label}</Badge>
                           </div>
                           
-                          <p className="text-sm text-muted-foreground mb-3">{order.customerName}</p>
+                          <p className="text-sm  mb-3">{order.customerName}</p>
                           
                           <div className="space-y-2">
                             {order.customCakes?.map((cake, i) => (
                               <div key={i} className="space-y-1">
                                 <p className="text-sm">
                                   <strong>{cake.portions} porciones</strong> - {cake.cakeFlavor}{cake.secondCakeFlavor ? `/${cake.secondCakeFlavor}` : ''}
-                                  {cake.shape && <span className="text-muted-foreground"> ({cake.shape})</span>}  
+                                  {cake.shape && <span className=""> ({cake.shape})</span>}  
                                   <br />
                                   {cake.design && (
-                                    <span className="text-muted-foreground">
+                                    <span className="">
                                       🎨 {cake.design.substring(0, 100)} {cake.design.length > 100 ? '...' : ''}
                                     </span>
                                   )}
@@ -321,7 +314,7 @@ export default function Decoration({ decorationApi = defaultDecorationApi }: Dec
                         </div>
 
                         <div className="text-right">
-                          <div className="flex items-center gap-1 text-muted-foreground justify-end">
+                          <div className="flex items-center gap-1  justify-end">
                             <Clock className="h-4 w-4" />
                             <span className="text-sm font-medium">
                               {hoursUntil > 0 ? `${hoursUntil}h` : 'Atrasado'}
@@ -363,21 +356,21 @@ export default function Decoration({ decorationApi = defaultDecorationApi }: Dec
               <div className="space-y-4 px-1">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 text-sm">
                   <div>
-                    <p className="text-xs sm:text-sm text-muted-foreground">Cliente</p>
+                    <p className="text-xs sm:text-sm ">Cliente</p>
                     <p className="font-medium text-sm">{selectedOrder.customerName}</p>
                   </div>
                   <div>
-                    <p className="text-xs sm:text-sm text-muted-foreground">Teléfono</p>
+                    <p className="text-xs sm:text-sm ">Teléfono</p>
                     <p className="font-medium text-sm">{selectedOrder.customerPhone}</p>
                   </div>
                   <div>
-                    <p className="text-xs sm:text-sm text-muted-foreground">Fecha de entrega</p>
+                    <p className="text-xs sm:text-sm ">Fecha de entrega</p>
                     <p className="font-medium text-sm">
                       {format(new Date(selectedOrder.pickupDate), 'dd MMMM yyyy', { locale: es })}
                     </p>
                   </div>
                   <div>
-                    <p className="text-xs sm:text-sm text-muted-foreground">Hora</p>
+                    <p className="text-xs sm:text-sm ">Hora</p>
                     <p className="font-medium text-sm">{selectedOrder.pickupTime}</p>
                   </div>
                 </div>
@@ -435,7 +428,7 @@ export default function Decoration({ decorationApi = defaultDecorationApi }: Dec
               <div className="space-y-4 px-1">
                 <div className="p-3 sm:p-4 bg-muted/50 rounded-lg">
                   <p className="font-medium text-sm sm:text-base">Pedido #{selectedOrder.orderNumber}</p>
-                  <p className="text-xs sm:text-sm text-muted-foreground">{selectedOrder.customerName}</p>
+                  <p className="text-xs sm:text-sm ">{selectedOrder.customerName}</p>
                 </div>
 
                 <div className="space-y-3">
@@ -463,10 +456,10 @@ export default function Decoration({ decorationApi = defaultDecorationApi }: Dec
                           {cake.cakeFlavor}{cake.secondCakeFlavor ? `/${cake.secondCakeFlavor}` : ''} - {cake.portions} porciones
                         </label>
                         {cake.design && (
-                          <p className="text-xs text-muted-foreground mt-1 line-clamp-2">{cake.design}</p>
+                          <p className="text-xs  mt-1 line-clamp-2">{cake.design}</p>
                         )}
                         {cake.dedication && (
-                          <p className="text-xs text-muted-foreground mt-1 line-clamp-2">{cake.dedication}</p>
+                          <p className="text-xs  mt-1 line-clamp-2">{cake.dedication}</p>
                         )}
                       </div>
                     </div>
@@ -494,7 +487,7 @@ export default function Decoration({ decorationApi = defaultDecorationApi }: Dec
                           {item.productName} - {item.quantity} Unidades
                         </label>
                         {item.notes && (
-                          <p className="text-xs text-muted-foreground mt-1 line-clamp-2">{item.notes}</p>
+                          <p className="text-xs  mt-1 line-clamp-2">{item.notes}</p>
                         )}
                       </div>
                     </div>

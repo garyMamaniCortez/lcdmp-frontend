@@ -46,7 +46,7 @@ export default function SpecialMenus() {
             <h1 className="text-2xl sm:text-3xl font-display font-bold text-foreground">
               Menús Especiales
             </h1>
-            <p className="text-sm sm:text-base text-muted-foreground">
+            <p className="text-sm sm:text-base ">
               Gestión de menús para eventos especiales
             </p>
           </div>
@@ -115,7 +115,7 @@ export default function SpecialMenus() {
 
               {/* Active filters indicator */}
               {filterStatus !== 'all' && (
-                <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                <div className="flex items-center gap-2 text-xs ">
                   <span>Filtro activo:</span>
                   <Badge variant="secondary" className="text-xs">
                     {filterStatus === 'active' ? 'Activos' : 
@@ -158,11 +158,11 @@ export default function SpecialMenus() {
                   </CardHeader>
                   <CardContent className="px-4 pb-4 sm:px-6">
                     <div className="space-y-1.5 sm:space-y-2 text-xs sm:text-sm">
-                      <div className="flex items-center gap-2 text-muted-foreground">
+                      <div className="flex items-center gap-2 ">
                         <Calendar className="h-3.5 w-3.5 sm:h-4 sm:w-4 shrink-0" />
                         <span className="truncate">Evento: {format(menu.eventDate, 'dd MMMM yyyy', { locale: es })}</span>
                       </div>
-                      <p className="text-muted-foreground text-xs sm:text-sm">
+                      <p className=" text-xs sm:text-sm">
                         Disponible hasta: {format(menu.endDate, 'dd MMMM', { locale: es })}
                       </p>
                       <p className="font-medium text-xs sm:text-sm">{menu.products.length} productos</p>
@@ -188,7 +188,7 @@ export default function SpecialMenus() {
             {isMobile ? (
               <div className="space-y-3">
                 {filteredMenus.length === 0 ? (
-                  <p className="text-center text-muted-foreground py-8">No hay menús para mostrar</p>
+                  <p className="text-center  py-8">No hay menús para mostrar</p>
                 ) : (
                   filteredMenus.map(menu => (
                     <MobileCard 
@@ -206,19 +206,19 @@ export default function SpecialMenus() {
                             </div>
                             <div className="min-w-0">
                               <h3 className="font-medium text-sm truncate">{menu.name}</h3>
-                              <p className="text-xs text-muted-foreground">
+                              <p className="text-xs ">
                                 {format(menu.eventDate, 'dd MMM yyyy', { locale: es })}
                               </p>
                             </div>
                           </div>
-                          <ChevronRight className="h-5 w-5 text-muted-foreground shrink-0" />
+                          <ChevronRight className="h-5 w-5  shrink-0" />
                         </div>
                         
                         <div className="flex items-center justify-between pt-1">
                           <Badge variant={menu.isActive ? 'default' : 'secondary'} className="text-xs">
                             {menu.isActive ? 'Activo' : 'Inactivo'}
                           </Badge>
-                          <span className="text-xs text-muted-foreground">
+                          <span className="text-xs ">
                             {menu.products.length} {menu.products.length === 1 ? 'producto' : 'productos'}
                           </span>
                         </div>
@@ -230,7 +230,7 @@ export default function SpecialMenus() {
             ) : (
               <div className="space-y-2">
                 {filteredMenus.length === 0 ? (
-                  <p className="text-center text-muted-foreground py-8">No hay menús para mostrar</p>
+                  <p className="text-center  py-8">No hay menús para mostrar</p>
                 ) : (
                   filteredMenus.map(menu => (
                     <div 
@@ -245,10 +245,10 @@ export default function SpecialMenus() {
                         </div>
                         <div className="min-w-0">
                           <h3 className="font-medium text-sm sm:text-base truncate">{menu.name}</h3>
-                          <p className="text-xs sm:text-sm text-muted-foreground">
+                          <p className="text-xs sm:text-sm ">
                             {format(menu.eventDate, 'dd MMMM yyyy', { locale: es })}
                           </p>
-                          <p className="text-xs text-muted-foreground sm:hidden mt-1">
+                          <p className="text-xs  sm:hidden mt-1">
                             {menu.products.length} productos
                           </p>
                         </div>
@@ -258,7 +258,7 @@ export default function SpecialMenus() {
                         <Badge variant={menu.isActive ? 'default' : 'secondary'} className="text-xs whitespace-nowrap">
                           {menu.isActive ? 'Activo' : 'Inactivo'}
                         </Badge>
-                        <span className="text-xs text-muted-foreground hidden sm:inline">
+                        <span className="text-xs  hidden sm:inline">
                           {menu.products.length} prod.
                         </span>
                         <div className="flex gap-1">
@@ -291,11 +291,11 @@ export default function SpecialMenus() {
               <div className="space-y-4 px-1">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 text-sm">
                   <div>
-                    <p className="text-xs sm:text-sm text-muted-foreground">Fecha del evento</p>
+                    <p className="text-xs sm:text-sm ">Fecha del evento</p>
                     <p className="font-medium text-sm">{format(selectedMenu.eventDate, 'dd MMMM yyyy', { locale: es })}</p>
                   </div>
                   <div>
-                    <p className="text-xs sm:text-sm text-muted-foreground">Período de disponibilidad</p>
+                    <p className="text-xs sm:text-sm ">Período de disponibilidad</p>
                     <p className="font-medium text-sm">
                       {format(selectedMenu.startDate, 'dd MMM', { locale: es })} - {format(selectedMenu.endDate, 'dd MMM', { locale: es })}
                     </p>
@@ -318,7 +318,7 @@ export default function SpecialMenus() {
                             {item.specialPrice ? (
                               <>
                                 <p className="font-bold text-primary text-sm">Bs. {item.specialPrice}</p>
-                                <p className="text-xs text-muted-foreground line-through">Bs. {item.product.basePrice}</p>
+                                <p className="text-xs  line-through">Bs. {item.product.basePrice}</p>
                               </>
                             ) : (
                               <p className="font-bold text-sm">Bs. {item.product.basePrice}</p>
@@ -328,7 +328,7 @@ export default function SpecialMenus() {
                       ))}
                     </div>
                   ) : (
-                    <p className="text-muted-foreground text-sm">No hay productos asignados</p>
+                    <p className=" text-sm">No hay productos asignados</p>
                   )}
                 </div>
 
@@ -376,7 +376,7 @@ function MenuForm({ onClose }: { onClose: () => void }) {
         </div>
       </div>
       
-      <p className="text-xs sm:text-sm text-muted-foreground">
+      <p className="text-xs sm:text-sm ">
         Por defecto, el menú estará disponible desde el registro hasta un día después del evento.
       </p>
       
@@ -398,7 +398,7 @@ function Select({ value, onValueChange, children }: any) {
     <select 
       value={value} 
       onChange={(e) => onValueChange(e.target.value)}
-      className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+      className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder: focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
     >
       {children}
     </select>

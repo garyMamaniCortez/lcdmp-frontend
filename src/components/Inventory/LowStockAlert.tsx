@@ -16,7 +16,7 @@ export function LowStockAlert({ summary }: LowStockAlertProps) {
             <p className="font-medium text-destructive text-sm sm:text-base">
               Stock bajo
             </p>
-            <p className="text-xs sm:text-sm text-muted-foreground">
+            <p className="text-xs sm:text-sm ">
               {summary.rawMaterials.length} materias primas y {summary.bakedProducts.length} productos horneados necesitan reposición
             </p>
           </div>

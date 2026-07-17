@@ -285,7 +285,7 @@ export default function Products({ api = defaultProductsApi }: ProductsProps) {
             <h1 className="text-2xl sm:text-3xl font-display font-bold text-foreground">
               Productos
             </h1>
-            <p className="text-sm sm:text-base text-muted-foreground">
+            <p className="text-sm sm:text-base ">
               Catálogo de productos y sabores
             </p>
           </div>
@@ -397,7 +397,7 @@ export default function Products({ api = defaultProductsApi }: ProductsProps) {
                 <div className="space-y-4">
                   <div className="p-4 bg-muted rounded-lg">
                     <p className="font-medium">{deletingFlavor.name}</p>
-                    <p className="text-sm text-muted-foreground">
+                    <p className="text-sm ">
                       Tipo: {deletingFlavor.type === 'cake' ? 'Sabor de torta' : 'Sabor de relleno'}
                     </p>
                   </div>
@@ -460,7 +460,7 @@ export default function Products({ api = defaultProductsApi }: ProductsProps) {
                 <div className={`${showFilters ? 'block' : 'hidden'} sm:block space-y-3`}>
                   <div className="flex flex-col sm:flex-row gap-3">
                     <div className="relative flex-1">
-                      <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                      <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 " />
                       <Input 
                         placeholder="Buscar productos..." 
                         className="pl-10 w-full text-sm sm:text-base"
@@ -493,7 +493,7 @@ export default function Products({ api = defaultProductsApi }: ProductsProps) {
                   </div>
 
                   {(searchTerm || selectedCategory !== 'all') && (
-                    <div className="flex items-center gap-2 text-xs text-muted-foreground flex-wrap">
+                    <div className="flex items-center gap-2 text-xs  flex-wrap">
                       <span>Filtros activos:</span>
                       {searchTerm && (
                         <Badge variant="secondary" className="text-xs">
@@ -519,7 +519,7 @@ export default function Products({ api = defaultProductsApi }: ProductsProps) {
             
             {!loading && products.length === 0 && (
               <Card>
-                <CardContent className="p-8 text-center text-muted-foreground">
+                <CardContent className="p-8 text-center ">
                   No se encontraron usuarios
                 </CardContent>
               </Card>
@@ -531,7 +531,7 @@ export default function Products({ api = defaultProductsApi }: ProductsProps) {
                   {filteredProducts.length === 0 ? (
                     <Card>
                       <CardContent className="p-8 text-center">
-                        <p className="text-muted-foreground">No se encontraron productos</p>
+                        <p className="">No se encontraron productos</p>
                       </CardContent>
                     </Card>
                   ) : (
@@ -540,11 +540,11 @@ export default function Products({ api = defaultProductsApi }: ProductsProps) {
                         <MobileCardHeader className="px-3 py-2">
                           <div className="flex items-center gap-3">
                             <div className="h-10 w-10 bg-muted rounded-lg flex items-center justify-center shrink-0">
-                              <Cake className="h-5 w-5 text-muted-foreground" />
+                              <Cake className="h-5 w-5 " />
                             </div>
                             <div className="min-w-0 flex-1">
                               <p className="font-medium text-sm truncate">{product.name}</p>
-                              <p className="text-xs text-muted-foreground truncate">{product.description}</p>
+                              <p className="text-xs  truncate">{product.description}</p>
                             </div>
                           </div>
                         </MobileCardHeader>
@@ -552,23 +552,23 @@ export default function Products({ api = defaultProductsApi }: ProductsProps) {
                         <div className="px-3 pb-3 space-y-2">
                           <div className="grid grid-cols-2 gap-2 text-sm">
                             <div>
-                              <p className="text-xs text-muted-foreground">Categoría</p>
+                              <p className="text-xs ">Categoría</p>
                               <Badge variant="outline" className="text-xs">
                                 {categories.find(c => c.value === product.category)?.label}
                               </Badge>
                             </div>
                             <div>
-                              <p className="text-xs text-muted-foreground">Precio</p>
+                              <p className="text-xs ">Precio</p>
                               <p className="font-medium">Bs. {product.basePrice}</p>
                             </div>
                             <div>
-                              <p className="text-xs text-muted-foreground">Stock</p>
+                              <p className="text-xs ">Stock</p>
                               <p className={product.stock <= product.minStock ? 'text-destructive font-medium' : ''}>
                                 {product.stock} / {product.minStock}
                               </p>
                             </div>
                             <div>
-                              <p className="text-xs text-muted-foreground">Ubicación</p>
+                              <p className="text-xs ">Ubicación</p>
                               <Badge variant={product.location === 'store' ? 'default' : 'secondary'} className="text-xs">
                                 {product.location === 'store' ? 'Tienda' : 'Producción'}
                               </Badge>
@@ -628,7 +628,7 @@ export default function Products({ api = defaultProductsApi }: ProductsProps) {
                       <TableBody>
                         {filteredProducts.length === 0 ? (
                           <TableRow>
-                            <TableCell colSpan={8} className="text-center py-8 text-muted-foreground">
+                            <TableCell colSpan={8} className="text-center py-8 ">
                               No se encontraron productos
                             </TableCell>
                           </TableRow>
@@ -638,11 +638,11 @@ export default function Products({ api = defaultProductsApi }: ProductsProps) {
                               <TableCell>
                                 <div className="flex items-center gap-3 min-w-[200px]">
                                   <div className="h-10 w-10 bg-muted rounded-lg flex items-center justify-center shrink-0">
-                                    <Cake className="h-5 w-5 text-muted-foreground" />
+                                    <Cake className="h-5 w-5 " />
                                   </div>
                                   <div className="min-w-0">
                                     <p className="font-medium truncate">{product.name}</p>
-                                    <p className="text-sm text-muted-foreground truncate max-w-xs">
+                                    <p className="text-sm  truncate max-w-xs">
                                       {product.description}
                                     </p>
                                   </div>
@@ -663,7 +663,7 @@ export default function Products({ api = defaultProductsApi }: ProductsProps) {
                                 <span className={product.stock <= product.minStock ? 'text-destructive font-medium' : ''}>
                                   {product.stock}
                                 </span>
-                                <span className="text-muted-foreground"> / {product.minStock}</span>
+                                <span className=""> / {product.minStock}</span>
                               </TableCell>
                               <TableCell className="text-right whitespace-nowrap">
                                 <Button 
@@ -724,7 +724,7 @@ export default function Products({ api = defaultProductsApi }: ProductsProps) {
                     <div className="space-y-2">
                       {flavors.filter(f => f.type === 'cake').map(flavor => (
                         <div key={flavor.id} className="flex items-center justify-between p-2 sm:p-3 bg-muted/50 rounded-lg">
-                          <span className={`text-sm sm:text-base font-medium ${!flavor.isActive ? 'text-muted-foreground line-through' : ''}`}>
+                          <span className={`text-sm sm:text-base font-medium ${!flavor.isActive ? ' line-through' : ''}`}>
                             {flavor.name}
                           </span>
                           <div className="flex items-center gap-1 sm:gap-2">
@@ -753,7 +753,7 @@ export default function Products({ api = defaultProductsApi }: ProductsProps) {
                         </div>
                       ))}
                       {flavors.filter(f => f.type === 'cake').length === 0 && (
-                        <div className="text-center py-4 text-muted-foreground text-sm">
+                        <div className="text-center py-4  text-sm">
                           No hay sabores de torta registrados
                         </div>
                       )}
@@ -773,7 +773,7 @@ export default function Products({ api = defaultProductsApi }: ProductsProps) {
                     <div className="space-y-2">
                       {flavors.filter(f => f.type === 'filling').map(flavor => (
                         <div key={flavor.id} className="flex items-center justify-between p-2 sm:p-3 bg-muted/50 rounded-lg">
-                          <span className={`text-sm sm:text-base font-medium ${!flavor.isActive ? 'text-muted-foreground line-through' : ''}`}>
+                          <span className={`text-sm sm:text-base font-medium ${!flavor.isActive ? ' line-through' : ''}`}>
                             {flavor.name}
                           </span>
                           <div className="flex items-center gap-1 sm:gap-2">
@@ -802,7 +802,7 @@ export default function Products({ api = defaultProductsApi }: ProductsProps) {
                         </div>
                       ))}
                       {flavors.filter(f => f.type === 'filling').length === 0 && (
-                        <div className="text-center py-4 text-muted-foreground text-sm">
+                        <div className="text-center py-4  text-sm">
                           No hay sabores de relleno registrados
                         </div>
                       )}

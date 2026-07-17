@@ -22,7 +22,7 @@ export default function Settings() {
       <div className="space-y-6">
         <div>
           <h1 className="text-3xl font-display font-bold text-foreground">Configuración</h1>
-          <p className="text-muted-foreground">Ajustes generales del sistema</p>
+          <p className="">Ajustes generales del sistema</p>
         </div>
 
         <Tabs defaultValue="general">
@@ -83,7 +83,7 @@ export default function Settings() {
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="font-medium">Modo oscuro</p>
-                    <p className="text-sm text-muted-foreground">Cambiar tema de la aplicación</p>
+                    <p className="text-sm ">Cambiar tema de la aplicación</p>
                   </div>
                   <Switch />
                 </div>
@@ -91,7 +91,7 @@ export default function Settings() {
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="font-medium">Notificaciones de stock bajo</p>
-                    <p className="text-sm text-muted-foreground">Alertas cuando el inventario esté bajo</p>
+                    <p className="text-sm ">Alertas cuando el inventario esté bajo</p>
                   </div>
                   <Switch defaultChecked />
                 </div>
@@ -99,7 +99,7 @@ export default function Settings() {
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="font-medium">Recordatorios de pedidos</p>
-                    <p className="text-sm text-muted-foreground">Alertas para pedidos próximos a entregar</p>
+                    <p className="text-sm ">Alertas para pedidos próximos a entregar</p>
                   </div>
                   <Switch defaultChecked />
                 </div>
@@ -139,8 +139,8 @@ export default function Settings() {
                           <h3 className="font-medium">{branch.name}</h3>
                           {branch.isMain && <Badge>Principal</Badge>}
                         </div>
-                        <p className="text-sm text-muted-foreground">{branch.address}</p>
-                        <p className="text-sm text-muted-foreground">Tel: {branch.phone}</p>
+                        <p className="text-sm ">{branch.address}</p>
+                        <p className="text-sm ">Tel: {branch.phone}</p>
                       </div>
                       <div className="flex gap-2">
                         <Button variant="ghost" size="icon">
@@ -172,14 +172,14 @@ export default function Settings() {
                 <div className="flex items-center justify-between p-4 bg-muted/50 rounded-lg">
                   <div>
                     <p className="font-medium">Efectivo</p>
-                    <p className="text-sm text-muted-foreground">Pagos en efectivo en tienda</p>
+                    <p className="text-sm ">Pagos en efectivo en tienda</p>
                   </div>
                   <Switch defaultChecked disabled />
                 </div>
                 <div className="flex items-center justify-between p-4 bg-muted/50 rounded-lg">
                   <div>
                     <p className="font-medium">Pago QR</p>
-                    <p className="text-sm text-muted-foreground">Pagos digitales vía código QR</p>
+                    <p className="text-sm ">Pagos digitales vía código QR</p>
                   </div>
                   <Switch defaultChecked />
                 </div>
@@ -229,7 +229,7 @@ export default function Settings() {
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="font-medium">Nuevos pedidos</p>
-                    <p className="text-sm text-muted-foreground">Notificar cuando se registre un nuevo pedido</p>
+                    <p className="text-sm ">Notificar cuando se registre un nuevo pedido</p>
                   </div>
                   <Switch defaultChecked />
                 </div>
@@ -237,7 +237,7 @@ export default function Settings() {
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="font-medium">Pedidos urgentes</p>
-                    <p className="text-sm text-muted-foreground">Alertas para pedidos con menos de 6 horas</p>
+                    <p className="text-sm ">Alertas para pedidos con menos de 6 horas</p>
                   </div>
                   <Switch defaultChecked />
                 </div>
@@ -245,7 +245,7 @@ export default function Settings() {
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="font-medium">Stock bajo</p>
-                    <p className="text-sm text-muted-foreground">Cuando el inventario esté por debajo del mínimo</p>
+                    <p className="text-sm ">Cuando el inventario esté por debajo del mínimo</p>
                   </div>
                   <Switch defaultChecked />
                 </div>
@@ -253,7 +253,7 @@ export default function Settings() {
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="font-medium">Cierre de caja</p>
-                    <p className="text-sm text-muted-foreground">Recordatorio para cerrar caja al final del día</p>
+                    <p className="text-sm ">Recordatorio para cerrar caja al final del día</p>
                   </div>
                   <Switch defaultChecked />
                 </div>
@@ -275,7 +275,7 @@ export default function Settings() {
                     <Input type="time" defaultValue="20:00" />
                   </div>
                 </div>
-                <p className="text-sm text-muted-foreground">
+                <p className="text-sm ">
                   Solo recibirás notificaciones dentro de este horario
                 </p>
               </CardContent>

@@ -205,7 +205,7 @@ export default function Users({ api = defaultUsersApi }: UsersProps) {
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-3xl font-display font-bold text-foreground">Usuarios</h1>
-            <p className="text-muted-foreground">Gestión de usuarios y roles</p>
+            <p className="">Gestión de usuarios y roles</p>
           </div>
           <Button onClick={openCreateDialog}>
             <Plus className="h-4 w-4 mr-2" />
@@ -246,7 +246,7 @@ export default function Users({ api = defaultUsersApi }: UsersProps) {
               <div className="space-y-2">
                 <Label>
                   Contraseña {!editingUser && '*'}
-                  {editingUser && <span className="text-xs text-muted-foreground ml-2">(Dejar vacío para mantener la actual)</span>}
+                  {editingUser && <span className="text-xs  ml-2">(Dejar vacío para mantener la actual)</span>}
                 </Label>
                 <Input 
                   type="password" 
@@ -321,7 +321,7 @@ export default function Users({ api = defaultUsersApi }: UsersProps) {
                     </Avatar>
                     <div>
                       <p className="font-medium">{togglingUser.name}</p>
-                      <p className="text-sm text-muted-foreground">{togglingUser.username}</p>
+                      <p className="text-sm ">{togglingUser.username}</p>
                     </div>
                   </div>
                   <div className="flex flex-wrap gap-1">
@@ -382,7 +382,7 @@ export default function Users({ api = defaultUsersApi }: UsersProps) {
                     </Avatar>
                     <div>
                       <p className="font-medium">{deletingUser.name}</p>
-                      <p className="text-sm text-muted-foreground">{deletingUser.username}</p>
+                      <p className="text-sm ">{deletingUser.username}</p>
                     </div>
                   </div>
                   <div className="flex flex-wrap gap-1">
@@ -427,7 +427,7 @@ export default function Users({ api = defaultUsersApi }: UsersProps) {
                 <p className="text-2xl font-bold">
                   {users.filter(u => u.isActive).length}
                 </p>
-                <p className="text-sm text-muted-foreground">Usuarios activos</p>
+                <p className="text-sm ">Usuarios activos</p>
               </div>
             </CardContent>
           </Card>
@@ -440,7 +440,7 @@ export default function Users({ api = defaultUsersApi }: UsersProps) {
                 <p className="text-2xl font-bold">
                   {users.filter(u => u.roles.includes('admin')).length}
                 </p>
-                <p className="text-sm text-muted-foreground">Administradores</p>
+                <p className="text-sm ">Administradores</p>
               </div>
             </CardContent>
           </Card>
@@ -450,7 +450,7 @@ export default function Users({ api = defaultUsersApi }: UsersProps) {
         <Card>
           <CardContent className="p-4">
             <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 " />
               <Input 
                 placeholder="Buscar usuarios..." 
                 className="pl-10"
@@ -469,7 +469,7 @@ export default function Users({ api = defaultUsersApi }: UsersProps) {
         
         {!loading && filteredUsers.length === 0 && (
           <Card>
-            <CardContent className="p-8 text-center text-muted-foreground">
+            <CardContent className="p-8 text-center ">
               No se encontraron usuarios
             </CardContent>
           </Card>
@@ -495,7 +495,7 @@ export default function Users({ api = defaultUsersApi }: UsersProps) {
                               <Badge variant="secondary" className="text-xs flex-shrink-0">Inactivo</Badge>
                             )}
                           </p>
-                          <p className="text-sm text-muted-foreground truncate">{user.username}</p>
+                          <p className="text-sm  truncate">{user.username}</p>
                         </div>
                       </div>
                       <div className="flex gap-1 flex-shrink-0">
@@ -569,7 +569,7 @@ export default function Users({ api = defaultUsersApi }: UsersProps) {
                               <span className="font-medium">{user.name}</span>
                             </div>
                           </TableCell>
-                          <TableCell className="text-muted-foreground">{user.username}</TableCell>
+                          <TableCell className="">{user.username}</TableCell>
                           <TableCell>
                             <div className="flex flex-wrap gap-1">
                               {user.roles.map(role => (

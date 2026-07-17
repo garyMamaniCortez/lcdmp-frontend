@@ -618,7 +618,7 @@ export default function OrderForm({ initialData, onSubmit, onClose, products, fl
           ))}
           
           {(formData.items || []).length === 0 && (
-            <p className="text-sm text-muted-foreground text-center py-4">
+            <p className="text-sm  text-center py-4">
               No hay productos agregados. Haz clic en "Agregar Producto" para comenzar.
             </p>
           )}
@@ -781,14 +781,14 @@ export default function OrderForm({ initialData, onSubmit, onClose, products, fl
         </div>
         
         {formData.discount > 0 && (
-          <div className="flex justify-between items-center py-2 text-sm text-muted-foreground">
+          <div className="flex justify-between items-center py-2 text-sm ">
             <span>Descuento:</span>
             <span className="text-destructive">- Bs. {formData.discount.toFixed(2)}</span>
           </div>
         )}
         
         {formData.deliveryCost > 0 && (
-          <div className="flex justify-between items-center py-2 text-sm text-muted-foreground">
+          <div className="flex justify-between items-center py-2 text-sm ">
             <span>Costo de envío:</span>
             <span>+ Bs. {formData.deliveryCost.toFixed(2)}</span>
           </div>

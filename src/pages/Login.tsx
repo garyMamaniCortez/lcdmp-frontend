@@ -50,7 +50,7 @@ export default function Login() {
           <h1 className="font-display text-3xl font-bold text-foreground">
             La Casa de Mi Padre
           </h1>
-          <p className="text-muted-foreground mt-2">Repostería Artesanal</p>
+          <p className=" mt-2">Repostería Artesanal</p>
         </div>
 
         <Card className="shadow-xl border-border/50">
@@ -106,7 +106,7 @@ export default function Login() {
           </CardContent>
         </Card>
 
-        <p className="text-center text-sm text-muted-foreground mt-6">
+        <p className="text-center text-sm  mt-6">
           © {new Date().getFullYear()} La Casa de Mi Padre. Cochabamba, Bolivia.
         </p>
       </div>

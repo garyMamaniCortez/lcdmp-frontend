@@ -149,7 +149,7 @@ export default function Baking({ bakingApi = defaultBakingApi }: BakingProps) {
           <h1 className="text-2xl sm:text-3xl font-display font-bold text-foreground">
             Hornos
           </h1>
-          <p className="text-sm sm:text-base text-muted-foreground mt-1">
+          <p className="text-sm sm:text-base  mt-1">
             Gestión de productos a hornear
           </p>
         </div>
@@ -163,7 +163,7 @@ export default function Baking({ bakingApi = defaultBakingApi }: BakingProps) {
               </div>
               <div className="min-w-0">
                 <p className="text-lg sm:text-2xl font-bold">{stats.pendingOrders}</p>
-                <p className="text-xs sm:text-sm text-muted-foreground truncate">Pedidos pendientes</p>
+                <p className="text-xs sm:text-sm  truncate">Pedidos pendientes</p>
               </div>
             </CardContent>
           </Card>
@@ -175,7 +175,7 @@ export default function Baking({ bakingApi = defaultBakingApi }: BakingProps) {
               </div>
               <div className="min-w-0">
                 <p className="text-lg sm:text-2xl font-bold">{stats.totalPortions}</p>
-                <p className="text-xs sm:text-sm text-muted-foreground truncate">Porciones a hornear</p>
+                <p className="text-xs sm:text-sm  truncate">Porciones a hornear</p>
               </div>
             </CardContent>
           </Card>
@@ -187,7 +187,7 @@ export default function Baking({ bakingApi = defaultBakingApi }: BakingProps) {
               </div>
               <div className="min-w-0">
                 <p className="text-lg sm:text-2xl font-bold">{stats.urgentOrders}</p>
-                <p className="text-xs sm:text-sm text-muted-foreground truncate">Urgentes (&lt;12h)</p>
+                <p className="text-xs sm:text-sm  truncate">Urgentes (&lt;12h)</p>
               </div>
             </CardContent>
           </Card>
@@ -199,7 +199,7 @@ export default function Baking({ bakingApi = defaultBakingApi }: BakingProps) {
               </div>
               <div className="min-w-0">
                 <p className="text-lg sm:text-2xl font-bold">{stats.completedToday}</p>
-                <p className="text-xs sm:text-sm text-muted-foreground truncate">Completados hoy</p>
+                <p className="text-xs sm:text-sm  truncate">Completados hoy</p>
               </div>
             </CardContent>
           </Card>
@@ -226,7 +226,7 @@ export default function Baking({ bakingApi = defaultBakingApi }: BakingProps) {
                       <span className={`text-base sm:text-lg font-bold ${lowStock ? 'text-red-600' : ''}`}>
                         {product.quantity}
                       </span>
-                      <span className="text-xs text-muted-foreground">/ mín {product.minStock}</span>
+                      <span className="text-xs ">/ mín {product.minStock}</span>
                     </div>
                   </div>
                 );
@@ -244,7 +244,7 @@ export default function Baking({ bakingApi = defaultBakingApi }: BakingProps) {
             
             <CardContent className="px-4 pb-4 sm:px-6">
               {bakingOrders.length === 0 ? (
-                <p className="text-center text-muted-foreground py-8 text-sm">
+                <p className="text-center  py-8 text-sm">
                   No hay pedidos pendientes de hornear
                 </p>
               ) : (
@@ -269,12 +269,9 @@ export default function Baking({ bakingApi = defaultBakingApi }: BakingProps) {
                             <div className="flex items-start justify-between mb-2">
                               <div>
                                 <div className="flex items-center gap-2 flex-wrap">
-                                  <h3 className="font-medium text-sm">Pedido #{order.orderNumber}</h3>
-                                  <Badge variant={order.status === 'baking' ? 'default' : 'secondary'} className="text-xs">
-                                    {order.status === 'baking' ? 'Horneando' : 'Pendiente'}
-                                  </Badge>
+                                  <span className="font-bold text-primary text-sm">#{order.orderNumber}</span>
                                 </div>
-                                <p className="text-xs text-muted-foreground mt-1">{order.customerName}</p>
+                                <p className="text-sm  mt-1">{order.customerName}</p>
                               </div>
                               <Badge className={`${urgency.color} text-white text-xs`}>
                                 {urgency.label}
@@ -283,15 +280,20 @@ export default function Baking({ bakingApi = defaultBakingApi }: BakingProps) {
 
                             <div className="space-y-2 mt-2">
                               {order.customCakes.map((cake, i) => (
-                                <div key={i} className="text-xs bg-muted/50 p-2 rounded">
+                                <div key={i} className="text-sm bg-muted/50 p-2 rounded">
                                   <p className="font-medium">{cake.portions} porciones - {cake.cakeFlavor}{cake.secondCakeFlavor ? `/${cake.secondCakeFlavor}` : ""}</p>
-                                  {cake.shape && <p className="text-muted-foreground mt-0.5">{cake.shape}</p>}
+                                  {cake.shape && <p className=" mt-0.5">{cake.shape}</p>}
+                                </div>
+                              ))}
+                              {order.items.map((cake, i) => (
+                                <div key={i} className="text-sm bg-muted/50 p-2 rounded">
+                                  <p className="font-medium">{cake.productName} - {cake.quantity} {cake.quantity == 1 ? "unidad" : "unidades"}</p>
                                 </div>
                               ))}
                             </div>
 
                             <div className="flex items-center justify-between mt-3 pt-2 border-t">
-                              <div className="flex items-center gap-1 text-muted-foreground">
+                              <div className="flex items-center gap-1 ">
                                 <Clock className="h-3.5 w-3.5" />
                                 <span className="text-xs">
                                   {hoursUntil > 0 ? `${hoursUntil}h` : 'Atrasado'}
@@ -299,9 +301,6 @@ export default function Baking({ bakingApi = defaultBakingApi }: BakingProps) {
                                 <span className="text-xs ml-1">
                                   {format(order.pickupDate, 'dd MMM', { locale: es })} {order.pickupTime}
                                 </span>
-                              </div>
-                              <div className="text-xs font-medium">
-                                {totalPortions} porciones
                               </div>
                               {order.status === 'pending' && (
                                 <Button size="sm" className="h-8 text-xs" onClick={() => markAsBaking(order)}>
@@ -334,13 +333,10 @@ export default function Baking({ bakingApi = defaultBakingApi }: BakingProps) {
                         
                         <div className="flex-1">
                           <div className="flex items-center gap-2 mb-1 flex-wrap">
-                            <h3 className="font-medium">Pedido #{order.orderNumber}</h3>
-                            <Badge variant={order.status === 'baking' ? 'default' : 'secondary'}>
-                              {order.status === 'baking' ? 'Horneando' : 'Pendiente'}
-                            </Badge>
+                            <span className="font-medium">#{order.orderNumber}</span>
                             <Badge className={urgency.color}>{urgency.label}</Badge>
                           </div>
-                          <p className="text-sm text-muted-foreground">{order.customerName}</p>
+                          <p className="text-sm ">{order.customerName}</p>
                           <div className="mt-2 space-y-1">
                             {order.customCakes.map((cake, i) => (
                               <p key={i} className="text-sm">
@@ -357,7 +353,7 @@ export default function Baking({ bakingApi = defaultBakingApi }: BakingProps) {
                         </div>
 
                         <div className="text-right">
-                          <div className="flex items-center gap-1 text-muted-foreground mb-2 justify-end">
+                          <div className="flex items-center gap-1  mb-2 justify-end">
                             <Clock className="h-4 w-4" />
                             <span className="text-sm">
                               {hoursUntil > 0 ? `${hoursUntil}h` : 'Atrasado'}
@@ -365,9 +361,6 @@ export default function Baking({ bakingApi = defaultBakingApi }: BakingProps) {
                           </div>
                           <p className="text-sm font-medium whitespace-nowrap">
                             {format(order.pickupDate, 'dd MMM', { locale: es })} {order.pickupTime}
-                          </p>
-                          <p className="text-xs text-muted-foreground mt-1">
-                            {totalPortions} porciones totales
                           </p>
                         </div>
 
@@ -410,7 +403,7 @@ export default function Baking({ bakingApi = defaultBakingApi }: BakingProps) {
               <div className="space-y-4 px-1">
                 <div className="p-3 sm:p-4 bg-muted/50 rounded-lg">
                   <p className="font-medium text-sm sm:text-base">Pedido #{selectedOrder.orderNumber}</p>
-                  <p className="text-xs sm:text-sm text-muted-foreground">{selectedOrder.customerName}</p>
+                  <p className="text-xs sm:text-sm ">{selectedOrder.customerName}</p>
                 </div>
 
                 <div className="space-y-3">

@@ -129,7 +129,7 @@ export default function Sales({ api = defaultSalesApi }: SalesProps) {
             <h1 className="text-2xl sm:text-3xl font-display font-bold text-foreground">
               Ventas
             </h1>
-            <p className="text-sm sm:text-base text-muted-foreground">
+            <p className="text-sm sm:text-base ">
               Punto de venta rápido
             </p>
           </div>
@@ -159,7 +159,7 @@ export default function Sales({ api = defaultSalesApi }: SalesProps) {
             {/* Search */}
             <div className="px-4 sm:px-0">
               <div className="relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 " />
                 <Input 
                   placeholder="Buscar productos..." 
                   className="pl-10 w-full"
@@ -170,7 +170,7 @@ export default function Sales({ api = defaultSalesApi }: SalesProps) {
             </div>
             {loading ? (
               <div className="flex items-center justify-center h-64">
-                <p className="text-muted-foreground">Cargando productos...</p>
+                <p className="">Cargando productos...</p>
               </div>
             ):(
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 sm:gap-4 px-4 sm:px-0">
@@ -182,9 +182,9 @@ export default function Sales({ api = defaultSalesApi }: SalesProps) {
                   >
                     <CardContent className="p-3 sm:p-4">
                       <div className="aspect-square bg-muted rounded-lg mb-2 sm:mb-3 flex items-center justify-center">
-                        <ShoppingCart className="h-6 w-6 sm:h-8 sm:w-8 text-muted-foreground" />
+                        <ShoppingCart className="h-6 w-6 sm:h-8 sm:w-8 " />
                       </div>
-                      <h3 className="font-medium text-xs sm:text-sm truncate">{product.name}</h3>
+                      <span className="font-medium text-sm sm:text-sm truncate">{product.name}</span>
                       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1 sm:gap-2 mt-1 sm:mt-2">
                         <span className="font-bold text-primary text-sm sm:text-base">Bs. {product.basePrice}</span>
                         <Badge variant="secondary" className="text-xs w-fit">
@@ -200,7 +200,7 @@ export default function Sales({ api = defaultSalesApi }: SalesProps) {
 
             {availableProducts.length === 0 && (
               <div className="text-center py-12 px-4">
-                <p className="text-muted-foreground">No se encontraron productos</p>
+                <p className="">No se encontraron productos</p>
               </div>
             )}
           </div>
@@ -241,11 +241,11 @@ export default function Sales({ api = defaultSalesApi }: SalesProps) {
               <CardContent className="space-y-4 px-4 pb-4 sm:px-6">
                 {cart.length === 0 ? (
                   <div className="text-center py-8 sm:py-12">
-                    <ShoppingCart className="h-12 w-12 sm:h-16 sm:w-16 mx-auto text-muted-foreground/30 mb-3" />
-                    <p className="text-sm sm:text-base text-muted-foreground">
+                    <ShoppingCart className="h-12 w-12 sm:h-16 sm:w-16 mx-auto /30 mb-3" />
+                    <p className="text-sm sm:text-base ">
                       Carrito vacío
                     </p>
-                    <p className="text-xs text-muted-foreground/70 mt-1 lg:hidden" onClick={() => setIsCartOpen(false)}>
+                    <p className="text-xs /70 mt-1 lg:hidden" onClick={() => setIsCartOpen(false)}>
                       Toca un producto para agregar
                     </p>
                   </div>
@@ -257,7 +257,7 @@ export default function Sales({ api = defaultSalesApi }: SalesProps) {
                         <div key={item.productId} className="flex items-start gap-2 p-2 sm:p-3 bg-muted/50 rounded-lg">
                           <div className="flex-1 min-w-0">
                             <p className="text-xs sm:text-sm font-medium truncate">{item.name}</p>
-                            <p className="text-xs text-muted-foreground mt-0.5">
+                            <p className="text-xs  mt-0.5">
                               Bs. {item.price} c/u
                             </p>
                             <p className="text-xs font-medium mt-1">
@@ -321,7 +321,7 @@ export default function Sales({ api = defaultSalesApi }: SalesProps) {
                         <div className="space-y-4 py-2 sm:py-4">
                           <div className="text-center">
                             <p className="text-2xl sm:text-3xl font-bold text-primary">Bs. {total.toLocaleString()}</p>
-                            <p className="text-xs sm:text-sm text-muted-foreground">Total a cobrar</p>
+                            <p className="text-xs sm:text-sm ">Total a cobrar</p>
                           </div>
 
                           {/* Payment Methods */}
@@ -352,7 +352,7 @@ export default function Sales({ api = defaultSalesApi }: SalesProps) {
                               <div className="w-24 h-24 sm:w-32 sm:h-32 mx-auto bg-white rounded-lg flex items-center justify-center border">
                                 <QrCode className="h-16 w-16 sm:h-20 sm:w-20" />
                               </div>
-                              <p className="text-xs sm:text-sm text-muted-foreground mt-2">
+                              <p className="text-xs sm:text-sm  mt-2">
                                 Escanear para pagar Bs. {total.toLocaleString()}
                               </p>
                             </div>

@@ -157,7 +157,7 @@ export default function CashRegister({ cashRegisterApi = defaultCashRegisterApi 
             <h1 className="text-2xl sm:text-3xl font-display font-bold text-foreground">
               Caja
             </h1>
-            <p className="text-sm sm:text-base text-muted-foreground">
+            <p className="text-sm sm:text-base ">
               {format(new Date(), 'EEEE, dd MMMM yyyy', { locale: es })}
             </p>
           </div>
@@ -344,7 +344,7 @@ export default function CashRegister({ cashRegisterApi = defaultCashRegisterApi 
                 <Badge variant="outline" className="text-xs">Efectivo</Badge>
               </div>
               <p className="text-lg sm:text-2xl font-bold mt-2 sm:mt-3">Bs. {summary?.currentCashBalance ?? 0}</p>
-              <p className="text-xs sm:text-sm text-muted-foreground">En caja</p>
+              <p className="text-xs sm:text-sm ">En caja</p>
             </CardContent>
           </Card>
           
@@ -357,7 +357,7 @@ export default function CashRegister({ cashRegisterApi = defaultCashRegisterApi 
                 <Badge variant="outline" className="text-xs">Digital</Badge>
               </div>
               <p className="text-lg sm:text-2xl font-bold mt-2 sm:mt-3">Bs. {summary?.currentQrBalance ?? 0}</p>
-              <p className="text-xs sm:text-sm text-muted-foreground">Pagos QR</p>
+              <p className="text-xs sm:text-sm ">Pagos QR</p>
             </CardContent>
           </Card>
           
@@ -373,7 +373,7 @@ export default function CashRegister({ cashRegisterApi = defaultCashRegisterApi 
               ):(
                 <p className="text-lg sm:text-2xl font-bold mt-2 sm:mt-3 text-red-600">Bs. {summary?.totalIncome ?? 0}</p>
               )}
-              <p className="text-xs sm:text-sm text-muted-foreground">Ingresos del día</p>
+              <p className="text-xs sm:text-sm ">Ingresos del día</p>
             </CardContent>
           </Card>
           
@@ -385,7 +385,7 @@ export default function CashRegister({ cashRegisterApi = defaultCashRegisterApi 
                 </div>
               </div>
               <p className="text-lg sm:text-2xl font-bold mt-2 sm:mt-3 text-red-600">-Bs. {summary?.totalExpenses ?? 0}</p>
-              <p className="text-xs sm:text-sm text-muted-foreground">Gastos del día</p>
+              <p className="text-xs sm:text-sm ">Gastos del día</p>
             </CardContent>
           </Card>
         </div>
@@ -394,7 +394,7 @@ export default function CashRegister({ cashRegisterApi = defaultCashRegisterApi 
         <Card className="mx-4 sm:mx-0">
           <CardContent className="p-3 sm:p-4 flex items-center justify-between">
             <div>
-              <p className="text-xs sm:text-sm text-muted-foreground">Saldo de apertura</p>
+              <p className="text-xs sm:text-sm ">Saldo de apertura</p>
               <p className="text-base sm:text-xl font-bold">Bs. {summary?.openingBalance ?? 0}</p>
             </div>
             <Badge variant={isOpen ? 'default' : 'secondary'} className="text-xs sm:text-sm">
@@ -431,7 +431,7 @@ export default function CashRegister({ cashRegisterApi = defaultCashRegisterApi 
                             </div>
                             <div>
                               <p className="font-medium text-sm truncate max-w-[150px]">{transaction.description}</p>
-                              <p className="text-xs text-muted-foreground">
+                              <p className="text-xs ">
                                 {format(transaction.createdAt, 'HH:mm')}
                               </p>
                             </div>
@@ -453,7 +453,7 @@ export default function CashRegister({ cashRegisterApi = defaultCashRegisterApi 
                             transaction.type === 'deposit' ? 'Adelanto' :
                             'Gasto'}
                           </Badge>
-                          <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                          <div className="flex items-center gap-1 text-xs ">
                             {transaction.method === 'cash' ? (
                               <Banknote className="h-3 w-3" />
                             ) : (
@@ -481,7 +481,7 @@ export default function CashRegister({ cashRegisterApi = defaultCashRegisterApi 
                     <TableBody>
                       {summary.transactions.map(transaction => (
                         <TableRow key={transaction.id}>
-                          <TableCell className="text-muted-foreground whitespace-nowrap">
+                          <TableCell className=" whitespace-nowrap">
                             {format(transaction.createdAt, 'HH:mm')}
                           </TableCell>
                           <TableCell className="whitespace-nowrap">

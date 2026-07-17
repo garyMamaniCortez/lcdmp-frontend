@@ -68,7 +68,7 @@ export function AdjustStockDialog({
           <div className="space-y-2">
             <Label>Producto</Label>
             <p className="text-sm font-medium">{itemName}</p>
-            <p className="text-sm text-muted-foreground">
+            <p className="text-sm ">
               Stock actual: {currentStock} {itemType === 'raw' ? 'unidades' : 'unidades'}
             </p>
           </div>
@@ -116,7 +116,7 @@ export function AdjustStockDialog({
 
           {operation === 'set' && (
             <div className="bg-muted p-3 rounded-lg">
-              <p className="text-sm text-muted-foreground">
+              <p className="text-sm ">
                 El stock se establecerá en: <span className="font-bold text-foreground">{getFinalStock()}</span>
               </p>
             </div>

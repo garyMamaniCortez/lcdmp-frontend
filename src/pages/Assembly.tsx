@@ -127,7 +127,7 @@ export default function Assembly({ assemblyApi = defaultAssemblyApi }: AssemblyP
           <h1 className="text-2xl sm:text-3xl font-display font-bold text-foreground">
             Armado
           </h1>
-          <p className="text-sm sm:text-base text-muted-foreground mt-1">
+          <p className="text-sm sm:text-base  mt-1">
             Ensamblaje de tortas
           </p>
         </div>
@@ -141,7 +141,7 @@ export default function Assembly({ assemblyApi = defaultAssemblyApi }: AssemblyP
               </div>
               <div className="min-w-0">
                 <p className="text-lg sm:text-2xl font-bold">{stats.pendingOrders}</p>
-                <p className="text-xs sm:text-sm text-muted-foreground truncate">Pendientes de armar</p>
+                <p className="text-xs sm:text-sm  truncate">Pendientes de armar</p>
               </div>
             </CardContent>
           </Card>
@@ -153,7 +153,7 @@ export default function Assembly({ assemblyApi = defaultAssemblyApi }: AssemblyP
               </div>
               <div className="min-w-0">
                 <p className="text-lg sm:text-2xl font-bold">{stats.urgentOrders}</p>
-                <p className="text-xs sm:text-sm text-muted-foreground truncate">Urgentes (&lt;12h)</p>
+                <p className="text-xs sm:text-sm  truncate">Urgentes (&lt;12h)</p>
               </div>
             </CardContent>
           </Card>
@@ -170,7 +170,7 @@ export default function Assembly({ assemblyApi = defaultAssemblyApi }: AssemblyP
                 <div key={product.id} className="p-2 sm:p-3 bg-muted/50 rounded-lg">
                   <p className="font-medium text-xs sm:text-sm truncate">{product.name}</p>
                   <p className="text-base sm:text-lg font-bold mt-1">{product.quantity}</p>
-                  <p className="text-xs text-muted-foreground">disponibles</p>
+                  <p className="text-xs ">disponibles</p>
                 </div>
               ))}
             </div>
@@ -186,7 +186,7 @@ export default function Assembly({ assemblyApi = defaultAssemblyApi }: AssemblyP
 
             <CardContent className="px-4 pb-4 sm:px-6">
               {assemblyOrders.length === 0 ? (
-                <p className="text-center text-muted-foreground py-8 text-sm">
+                <p className="text-center  py-8 text-sm">
                   No hay pedidos pendientes de armar
                 </p>
               ) : (
@@ -210,9 +210,9 @@ export default function Assembly({ assemblyApi = defaultAssemblyApi }: AssemblyP
                             <div className="flex items-start justify-between mb-2">
                               <div>
                                 <div className="flex items-center gap-2 flex-wrap">
-                                  <h3 className="font-medium text-sm">Pedido #{order.orderNumber}</h3>
+                                  <span className="font-bold text-primary text-sm">#{order.orderNumber}</span>
                                 </div>
-                                <p className="text-xs text-muted-foreground mt-1">{order.customerName}</p>
+                                <p className="text-sm  mt-1">{order.customerName}</p>
                               </div>
                               <Badge className={`${urgency.color} text-white text-xs`}>
                                 {urgency.label}
@@ -221,15 +221,15 @@ export default function Assembly({ assemblyApi = defaultAssemblyApi }: AssemblyP
 
                             <div className="space-y-2 mt-2">
                               {order.customCakes.map((cake, i) => (
-                                <div key={i} className="text-xs bg-muted/50 p-2 rounded">
+                                <div key={i} className="text-sm bg-muted/50 p-2 rounded">
                                   <p className="font-medium">{cake.portions} porciones - {cake.cakeFlavor}{cake.secondCakeFlavor ? `/${cake.secondCakeFlavor}` : ""}</p>
-                                  <p className="text-muted-foreground mt-0.5">
+                                  <p className=" mt-0.5">
                                     Relleno: {cake.fillingFlavor} {cake.secondFillingFlavor ? `/ ${cake.secondFillingFlavor}` : ''}
                                   </p>
                                 </div>
                               ))}
                               {order.items.map((item, i) => (
-                                <div key={i} className="text-xs bg-muted/50 p-2 rounded">
+                                <div key={i} className="text-sm bg-muted/50 p-2 rounded">
                                   <p className="font-medium"><strong>{item.productName} - {item.quantity} Unidades</strong></p>
                                   {item.notes && (
                                     <>
@@ -248,7 +248,7 @@ export default function Assembly({ assemblyApi = defaultAssemblyApi }: AssemblyP
                             </div>
 
                             <div className="flex items-center justify-between mt-3 pt-2 border-t">
-                              <div className="flex items-center gap-1 text-muted-foreground">
+                              <div className="flex items-center gap-1 ">
                                 <Clock className="h-3.5 w-3.5" />
                                 <span className="text-xs">
                                   {hoursUntil > 0 ? `${hoursUntil}h` : 'Atrasado'}
@@ -279,16 +279,16 @@ export default function Assembly({ assemblyApi = defaultAssemblyApi }: AssemblyP
                         
                         <div className="flex-1">
                           <div className="flex items-center gap-2 mb-1 flex-wrap">
-                            <h3 className="font-medium">Pedido #{order.orderNumber}</h3>
+                            <span className="font-medium">#{order.orderNumber}</span>
                             <Badge className={urgency.color}>{urgency.label}</Badge>
                           </div>
-                          <p className="text-sm text-muted-foreground">{order.customerName}</p>
+                          <p className="text-sm ">{order.customerName}</p>
                           <div className="mt-2 space-y-1">
                             {order.customCakes.map((cake, i) => (
                               <p key={i} className="text-sm">
                                 <strong>{cake.portions} porciones</strong> - {cake.cakeFlavor}{cake.secondCakeFlavor ? `/${cake.secondCakeFlavor}` : ""}
                                 <br />
-                                <span className="text-muted-foreground">
+                                <span className="">
                                   Relleno: {cake.fillingFlavor} {cake.secondFillingFlavor ? `/ ${cake.secondFillingFlavor}` : ''}
                                 </span>
                               </p>
@@ -316,7 +316,7 @@ export default function Assembly({ assemblyApi = defaultAssemblyApi }: AssemblyP
                         </div>
 
                         <div className="text-right">
-                          <div className="flex items-center gap-1 text-muted-foreground mb-2 justify-end">
+                          <div className="flex items-center gap-1  mb-2 justify-end">
                             <Clock className="h-4 w-4" />
                             <span className="text-sm">
                               {hoursUntil > 0 ? `${hoursUntil}h` : 'Atrasado'}
@@ -357,7 +357,7 @@ export default function Assembly({ assemblyApi = defaultAssemblyApi }: AssemblyP
               <div className="space-y-4 px-1">
                 <div className="p-3 sm:p-4 bg-muted/50 rounded-lg">
                   <p className="font-medium text-sm sm:text-base">Pedido #{selectedOrder.orderNumber}</p>
-                  <p className="text-xs sm:text-sm text-muted-foreground">{selectedOrder.customerName}</p>
+                  <p className="text-xs sm:text-sm ">{selectedOrder.customerName}</p>
                 </div>
 
                 <div className="space-y-3">
@@ -377,11 +377,11 @@ export default function Assembly({ assemblyApi = defaultAssemblyApi }: AssemblyP
                         >
                           {cake.cakeFlavor} - {cake.portions} porciones
                         </label>
-                        <p className="text-xs text-muted-foreground mt-1">
+                        <p className="text-xs  mt-1">
                           Relleno: {cake.fillingFlavor} {cake.secondFillingFlavor ? `/ ${cake.secondFillingFlavor}` : ''}
                         </p>
                         {cake.secondCakeFlavor && (
-                          <p className="text-xs text-muted-foreground mt-0.5">
+                          <p className="text-xs  mt-0.5">
                             Segundo sabor: {cake.secondCakeFlavor}
                           </p>
                         )}

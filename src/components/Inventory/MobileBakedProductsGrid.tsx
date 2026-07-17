@@ -56,7 +56,7 @@ export function MobileBakedProductsGrid({
     return (
       <Card className="mx-4 sm:mx-0">
         <CardContent className="p-8 text-center">
-          <p className="text-muted-foreground">No hay productos horneados</p>
+          <p className="">No hay productos horneados</p>
         </CardContent>
       </Card>
     );
@@ -86,7 +86,7 @@ export function MobileBakedProductsGrid({
                 
                 <div className="space-y-2">
                   <div className="flex justify-between text-xs sm:text-sm">
-                    <span className="text-muted-foreground">Cantidad:</span>
+                    <span className="">Cantidad:</span>
                     <span className={isLowStock ? 'text-destructive font-bold' : 'font-medium'}>
                       {product.quantity}
                     </span>
@@ -97,13 +97,13 @@ export function MobileBakedProductsGrid({
                       value={Math.min(stockPercentage, 100)} 
                       className={`h-1.5 sm:h-2 ${isLowStock ? '[&>div]:bg-destructive' : ''}`}
                     />
-                    <p className="text-xs text-muted-foreground">
+                    <p className="text-xs ">
                       Stock mínimo: {product.minStock}
                     </p>
                   </div>
 
                   {product.expiresAt && (
-                    <p className="text-xs text-muted-foreground">
+                    <p className="text-xs ">
                       Expira: {new Date(product.expiresAt).toLocaleDateString('es')}
                     </p>
                   )}

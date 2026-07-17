@@ -60,7 +60,7 @@ export default function Delivery() {
           <h1 className="text-2xl sm:text-3xl font-display font-bold text-foreground">
             Delivery
           </h1>
-          <p className="text-sm sm:text-base text-muted-foreground mt-1">
+          <p className="text-sm sm:text-base  mt-1">
             Gestión de entregas y recogidas
           </p>
         </div>
@@ -74,7 +74,7 @@ export default function Delivery() {
               </div>
               <div className="min-w-0">
                 <p className="text-lg sm:text-2xl font-bold">{deliveryOrders.length}</p>
-                <p className="text-xs sm:text-sm text-muted-foreground truncate">Para entregar</p>
+                <p className="text-xs sm:text-sm  truncate">Para entregar</p>
               </div>
             </CardContent>
           </Card>
@@ -86,7 +86,7 @@ export default function Delivery() {
               </div>
               <div className="min-w-0">
                 <p className="text-lg sm:text-2xl font-bold">{pickupOrders.length}</p>
-                <p className="text-xs sm:text-sm text-muted-foreground truncate">Para recoger</p>
+                <p className="text-xs sm:text-sm  truncate">Para recoger</p>
               </div>
             </CardContent>
           </Card>
@@ -100,7 +100,7 @@ export default function Delivery() {
                 <p className="text-lg sm:text-2xl font-bold">
                   {[...deliveryOrders, ...pickupOrders].filter(o => differenceInHours(o.pickupDate, new Date()) < 2).length}
                 </p>
-                <p className="text-xs sm:text-sm text-muted-foreground truncate">Urgentes (&lt;2h)</p>
+                <p className="text-xs sm:text-sm  truncate">Urgentes (&lt;2h)</p>
               </div>
             </CardContent>
           </Card>
@@ -114,7 +114,7 @@ export default function Delivery() {
                 <p className="text-lg sm:text-2xl font-bold">
                   {mockOrders.filter(o => o.status === 'delivered').length}
                 </p>
-                <p className="text-xs sm:text-sm text-muted-foreground truncate">Entregados hoy</p>
+                <p className="text-xs sm:text-sm  truncate">Entregados hoy</p>
               </div>
             </CardContent>
           </Card>
@@ -130,7 +130,7 @@ export default function Delivery() {
           </CardHeader>
           <CardContent className="px-4 pb-4 sm:px-6">
             {deliveryOrders.length === 0 ? (
-              <p className="text-center text-muted-foreground py-8 text-sm">
+              <p className="text-center  py-8 text-sm">
                 No hay entregas pendientes
               </p>
             ) : (
@@ -154,7 +154,7 @@ export default function Delivery() {
                               <div className="flex items-center gap-2 flex-wrap">
                                 <h3 className="font-medium text-sm">Pedido #{order.id}</h3>
                               </div>
-                              <p className="text-xs text-muted-foreground mt-1">{order.customerName}</p>
+                              <p className="text-xs  mt-1">{order.customerName}</p>
                             </div>
                             <Badge className={`${urgency.color} text-white text-xs`}>
                               {urgency.label}
@@ -162,7 +162,7 @@ export default function Delivery() {
                           </div>
                           <div className="space-y-2 mt-2">
                             <div  className="text-xs bg-muted/50 p-2 rounded">
-                              <div className="flex items-start gap-2 text-xs text-muted-foreground">
+                              <div className="flex items-start gap-2 text-xs ">
                                 <MapPin className="h-3.5 w-3.5 mt-0.5 flex-shrink-0" />
                                 <span className="line-clamp-2">{order.deliveryAddress}</span>
                               </div>
@@ -174,16 +174,16 @@ export default function Delivery() {
                               </div>
                             </div>
                             <div className="flex justify-between items-center pt-1">
-                              <p className="text-xs text-muted-foreground">
+                              <p className="text-xs ">
                                 Saldo: Bs. {order.total - order.deposit}
                               </p>
-                              <p className="text-xs text-muted-foreground">
+                              <p className="text-xs ">
                                 Costo de envío: Bs. {order.deliveryCost}
                               </p>
                             </div>
                           </div>
                           <div className="flex items-center justify-between mt-3 pt-2 border-t">
-                            <div className="flex items-center gap-1 text-muted-foreground">
+                            <div className="flex items-center gap-1 ">
                               <Clock className="h-3.5 w-3.5" />
                               <span className="text-xs">
                                 {hoursUntil > 0 ? `${hoursUntil}h` : 'Atrasado'}
@@ -229,7 +229,7 @@ export default function Delivery() {
                         </div>
                         <div className="flex items-center gap-2 text-sm flex-wrap">
                           <span className="font-medium">{order.customerName}</span>
-                          <span className="text-muted-foreground">•</span>
+                          <span className="">•</span>
                           <a href={`tel:${order.customerPhone}`} className="text-primary flex items-center gap-1">
                             <Phone className="h-3 w-3" />
                             {order.customerPhone}
@@ -242,7 +242,7 @@ export default function Delivery() {
                               <br />
                             </p>
                           ))}
-                          <div className='flex items-start gap-1 mt-2 text-sm text-muted-foreground'>
+                          <div className='flex items-start gap-1 mt-2 text-sm '>
                             <MapPin className="h-4 w-4 mt-0.5 flex-shrink-0" />
                             <span className="break-words">{order.deliveryAddress}</span>
                           </div>
@@ -250,7 +250,7 @@ export default function Delivery() {
                       </div>
 
                       <div className="text-right whitespace-nowrap">
-                        <div className="flex items-center gap-1 text-muted-foreground mb-1 justify-end">
+                        <div className="flex items-center gap-1  mb-1 justify-end">
                           <Clock className="h-4 w-4" />
                           <span className="text-sm font-medium">
                             {hoursUntil > 0 ? `${hoursUntil}h` : 'Atrasado'}
@@ -259,10 +259,10 @@ export default function Delivery() {
                         <p className="text-sm">
                           {format(order.pickupDate, 'dd MMM', { locale: es })} {order.pickupTime}
                         </p>
-                        <p className="text-xs text-muted-foreground">
+                        <p className="text-xs ">
                           Saldo: Bs. {order.total - order.deposit}
                         </p>
-                        <p className="text-xs text-muted-foreground">
+                        <p className="text-xs ">
                           Costo de envío: Bs. {order.deliveryCost}
                         </p>
                       </div>
@@ -302,7 +302,7 @@ export default function Delivery() {
           </CardHeader>
           <CardContent className="px-4 pb-4 sm:px-6">
             {pickupOrders.length === 0 ? (
-              <p className="text-center text-muted-foreground py-8 text-sm">
+              <p className="text-center  py-8 text-sm">
                 No hay recogidas pendientes
               </p>
             ) : (
@@ -325,10 +325,10 @@ export default function Delivery() {
                                   {urgency.label}
                                 </Badge>
                               </div>
-                              <p className="text-xs text-muted-foreground mt-1">{order.customerName}</p>
+                              <p className="text-xs  mt-1">{order.customerName}</p>
                             </div>
                             <div className="text-right ml-2">
-                              <div className="flex items-center gap-1 text-muted-foreground">
+                              <div className="flex items-center gap-1 ">
                                 <Clock className="h-3.5 w-3.5" />
                                 <span className="text-xs">{hoursUntil > 0 ? `${hoursUntil}h` : 'Atrasado'}</span>
                               </div>
@@ -348,10 +348,10 @@ export default function Delivery() {
 
                             <div className="flex justify-between items-center pt-1">
                               <div>
-                                <p className="text-xs text-muted-foreground">Total</p>
+                                <p className="text-xs ">Total</p>
                                 <p className="font-bold text-primary text-sm">Bs. {order.total}</p>
                               </div>
-                              <p className="text-xs text-muted-foreground">
+                              <p className="text-xs ">
                                 Saldo: Bs. {order.total - order.deposit}
                               </p>
                             </div>
@@ -385,7 +385,7 @@ export default function Delivery() {
                         </div>
                         <div className="flex items-center gap-2 text-sm flex-wrap">
                           <span className="font-medium">{order.customerName}</span>
-                          <span className="text-muted-foreground">•</span>
+                          <span className="">•</span>
                           <a href={`tel:${order.customerPhone}`} className="text-primary flex items-center gap-1">
                             <Phone className="h-3 w-3" />
                             {order.customerPhone}
@@ -394,7 +394,7 @@ export default function Delivery() {
                       </div>
 
                       <div className="text-right whitespace-nowrap">
-                        <div className="flex items-center gap-1 text-muted-foreground mb-1 justify-end">
+                        <div className="flex items-center gap-1  mb-1 justify-end">
                           <Clock className="h-4 w-4" />
                           <span className="text-sm font-medium">
                             {hoursUntil > 0 ? `${hoursUntil}h` : 'Atrasado'}
@@ -404,7 +404,7 @@ export default function Delivery() {
                           {format(order.pickupDate, 'dd MMM', { locale: es })} {order.pickupTime}
                         </p>
                         <p className="font-bold text-primary mt-1">Bs. {order.total}</p>
-                        <p className="text-xs text-muted-foreground">
+                        <p className="text-xs ">
                           Saldo: Bs. {order.total - order.deposit}
                         </p>
                       </div>
@@ -434,14 +434,14 @@ export default function Delivery() {
               <div className="space-y-4 px-1">
                 <div className="p-3 sm:p-4 bg-muted/50 rounded-lg">
                   <p className="font-medium text-sm sm:text-base">Pedido #{selectedOrder.id}</p>
-                  <p className="text-xs sm:text-sm text-muted-foreground">{selectedOrder.customerName}</p>
+                  <p className="text-xs sm:text-sm ">{selectedOrder.customerName}</p>
                   {selectedOrder.deliveryAddress && (
                     <p className="text-xs sm:text-sm mt-1 break-words">{selectedOrder.deliveryAddress}</p>
                   )}
                 </div>
 
                 <div className="p-3 sm:p-4 bg-primary/5 rounded-lg">
-                  <p className="text-xs sm:text-sm text-muted-foreground">Saldo pendiente</p>
+                  <p className="text-xs sm:text-sm ">Saldo pendiente</p>
                   <p className="text-xl sm:text-2xl font-bold text-primary">
                     Bs. {selectedOrder.total - selectedOrder.deposit}
                   </p>
